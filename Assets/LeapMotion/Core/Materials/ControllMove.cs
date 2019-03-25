@@ -4,8 +4,6 @@ using UnityEngine;
 using Leap;
 using Leap.Unity;
 
-using SocketIOClient;
-
 public class ControllMove : MonoBehaviour
 {
 
@@ -15,24 +13,14 @@ public class ControllMove : MonoBehaviour
     float HandPalmRoll;
     float HandWristRot;
 
-    string url = "http://4c9cb1a5.ngrok.io/";
-    public static Client socket { get; private set; }
+    string url = "http://127.0.0.1:3000/";
 
     void Awake()
     {
         Debug.Log("start camera");
-        socket = new Client(url);
-        socket.Opened += SocketOpened;
-        socket.Connect();
 
-    }
-
-    private void SocketOpened(object sender, System.EventArgs e)
-    {
-        Debug.Log("Socket Opened");
     }
     
-
     // Start is called before the first frame update
     void Start()
     {
@@ -42,13 +30,11 @@ public class ControllMove : MonoBehaviour
     void OnDisable()
     {
         Debug.Log("socket close");
-        socket.Close();
     }
 
 
     void ballReset()
     {
-
         GameObject ball = GameObject.FindWithTag("Ball");
         ball.GetComponent<Rigidbody>().velocity = Vector3.zero;
         ball.transform.position = GoalScript.resetVector3;

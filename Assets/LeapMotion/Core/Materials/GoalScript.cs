@@ -10,20 +10,6 @@ public class GoalScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        ControllMove.socket.On("connect", (data) => {
-            Debug.Log("Hello, socket.io~");
-        });
-
-        // "news" 이벤트 처리 Receive
-        ControllMove.socket.On("news", (data) => {
-            Debug.Log(data);
-
-            // "my other event" 이벤트 Send
-            ControllMove.socket.Emit(
-                "my other event",       // 이벤트명
-                "{ \"my\": \"data\" }"  // 데이터 (Json 텍스트)
-                );
-        });
 
     }
 
