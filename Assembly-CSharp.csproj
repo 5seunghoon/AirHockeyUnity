@@ -63,9 +63,6 @@
     <Compile Include="Assets\__Sample\Client\Src\Namespace.cs" />
     <Compile Include="Assets\LeapMotion\Core\Examples\Example Assets\InertiaPostProcessProvider.cs" />
     <Compile Include="Assets\LeapMotion\Core\Examples\Example Assets\ProjectionPostProcessProvider.cs" />
-    <Compile Include="Assets\LeapMotion\Core\Materials\BallScript.cs" />
-    <Compile Include="Assets\LeapMotion\Core\Materials\ControllMove.cs" />
-    <Compile Include="Assets\LeapMotion\Core\Materials\GoalScript.cs" />
     <Compile Include="Assets\LeapMotion\Core\Plugins\LeapCSharp\Arm.cs" />
     <Compile Include="Assets\LeapMotion\Core\Plugins\LeapCSharp\Bone.cs" />
     <Compile Include="Assets\LeapMotion\Core\Plugins\LeapCSharp\CircularObjectBuffer.cs" />
@@ -254,6 +251,9 @@
     <Compile Include="Assets\LINQtoGameObject\Scripts\GameObjectExtensions.Enumerable.cs" />
     <Compile Include="Assets\LINQtoGameObject\Scripts\GameObjectExtensions.Operate.cs" />
     <Compile Include="Assets\LINQtoGameObject\Scripts\GameObjectExtensions.Traverse.cs" />
+    <Compile Include="Assets\OSHAsset\BallScript.cs" />
+    <Compile Include="Assets\OSHAsset\ControllMove.cs" />
+    <Compile Include="Assets\OSHAsset\GoalScript.cs" />
     <None Include="Assets\LeapMotion\Core\Resources\LeapCG.cginc" />
     <None Include="Assets\LeapMotion\Core\README_BEFORE_UPDATING.txt" />
     <None Include="Assets\LeapMotion\Core\readme.txt" />
