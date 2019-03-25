@@ -23,7 +23,7 @@ namespace Leap.Unity {
   /// <summary>
   /// The HandModelManager manages a pool of HandModelBases and makes HandRepresentations
   /// when a it detects a Leap Hand from its configured LeapProvider.
-  /// 
+  ///   
   /// When a HandRepresentation is created, a HandModelBase is removed from the pool.
   /// When a HandRepresentation is finished, its HandModelBase is returned to the pool.
   /// 
