@@ -16,30 +16,20 @@ public class ControllMove : MonoBehaviour
     float HandPalmRoll;
     float HandWristRot;
 
-    string url = "http://127.0.0.1:3000/";
+    string url = "http://4f5df61f.ngrok.io";
     public static Socket socket;
-
-    void Awake()
-    {
-        Debug.Log("start camera");
-
-    }
-    
-    // Start is called before the first frame update
     void Start()
     {
         socket = Socket.Connect(url);
-        socket.On("HELLO_WORLD", (string data) => {
-            Debug.Log("HELLO_WORLD data : " + data);
+        socket.On("connect", (string data) => {
+            Debug.Log("connect with server");
         });
-        ballReset();
+        socket.On("HELLO_WORLD", (string data) =>
+        {
+            Debug.Log("Hello world socket on " + data);
+        });
+        ballReset(); // 공 위치 초기화 
     }
-
-    void OnDisable()
-    {
-        Debug.Log("socket close");
-    }
-
 
     void ballReset()
     {
