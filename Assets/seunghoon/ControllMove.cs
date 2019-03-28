@@ -16,7 +16,7 @@ public class ControllMove : MonoBehaviour
     float HandPalmRoll;
     float HandWristRot;
 
-    string url = "http://4f5df61f.ngrok.io";
+    string url = "http://127.0.0.1:3000";
     public static Socket socket;
     void Start()
     {
