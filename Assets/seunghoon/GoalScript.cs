@@ -22,7 +22,7 @@ public class GoalScript : MonoBehaviour
     void OnTriggerEnter(Collider col)
     {
         // 벽에 닿으면 공 위치 초기화
-        if(col.tag == "Ball")
+        if(col.tag == "BALL")
         {
             Debug.Log("Ball Trigger Enter");
             

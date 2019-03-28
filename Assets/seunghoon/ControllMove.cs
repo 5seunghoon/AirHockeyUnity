@@ -33,7 +33,7 @@ public class ControllMove : MonoBehaviour
 
     void ballReset()
     {
-        GameObject ball = GameObject.FindWithTag("Ball");
+        GameObject ball = GameObject.FindWithTag("BALL");
         ball.GetComponent<Rigidbody>().velocity = Vector3.zero;
         ball.transform.position = GoalScript.resetVector3;
     }
