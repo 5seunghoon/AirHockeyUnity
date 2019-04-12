@@ -27,7 +27,7 @@ public class GoalScript : MonoBehaviour
             Debug.Log("Ball Trigger Enter");
             
             // 여러번 Emit 됨 : 1초에 1회만 Emit되게 수정하면 좋을듯
-            ControllMove.socket.EmitJson("SCORE_UP", "{\"player\":\"P1\",\"score\":\"1\"}");
+            ControllMove.socket.EmitJson("scoreUp", "{\"player\":\"P1\",\"score\":\"1\"}");
             
             col.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
             col.gameObject.transform.position = resetVector3;

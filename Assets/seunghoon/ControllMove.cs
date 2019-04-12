@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Leap;
@@ -7,27 +8,24 @@ using socket.io;
 
 public class ControllMove : MonoBehaviour
 {
-
     // socket.io for unity : https://github.com/nhnent/socket.io-client-unity3d/
-        
+
     Controller controller;
     float HandPalmPitch;
     float HandPalmYam;
     float HandPalmRoll;
     float HandWristRot;
+    
+    private DateTime prevTime = DateTime.Now;
 
     string url = "http://127.0.0.1:3000";
     public static Socket socket;
+    
     void Start()
     {
         socket = Socket.Connect(url);
-        socket.On("connect", (string data) => {
-            Debug.Log("connect with server");
-        });
-        socket.On("HELLO_WORLD", (string data) =>
-        {
-            Debug.Log("Hello world socket on " + data);
-        });
+        socket.On("connect", (string data) => { Debug.Log("connect with server"); });
+        socket.On("ballPositionSendingStart", (string data) => { BallScript.isSendBallPosition = true; });
         ballReset(); // 공 위치 초기화 
     }
 
@@ -37,6 +35,7 @@ public class ControllMove : MonoBehaviour
         ball.GetComponent<Rigidbody>().velocity = Vector3.zero;
         ball.transform.position = GoalScript.resetVector3;
     }
+
     // Update is called once per frame
     void Update()
     {
@@ -45,9 +44,8 @@ public class ControllMove : MonoBehaviour
         {
             Debug.Log("space bar down");
             ballReset();
-            socket.Emit("TEST_EVENT", "");
+            socket.EmitJson("TEST_EVENT", "");
         }
-
 
         /*
         controller = new Controller();
