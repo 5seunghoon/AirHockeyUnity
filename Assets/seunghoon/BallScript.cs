@@ -9,6 +9,8 @@ public class BallScript : MonoBehaviour
     
     public static bool isSendBallPosition = false;
 
+    public static int scorePoint = 1;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -17,7 +19,7 @@ public class BallScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (isSendBallPosition && Math.Abs(DateTime.Now.Ticks - prevTime.Ticks) > 1000000)
+        if (ControllMove.playerType == "P1" && isSendBallPosition && Math.Abs(DateTime.Now.Ticks - prevTime.Ticks) > 1000000)
         {
             prevTime = DateTime.Now;
             
@@ -34,6 +36,12 @@ public class BallScript : MonoBehaviour
             var positionJsonStr = "{\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z + "}";
             Debug.Log("position Json Str : " + positionJsonStr);
             ControllMove.socket.EmitJson("ballPosition", positionJsonStr);
+        }
+
+        if (ControllMove.playerType == "P2")
+        {
+            // 공 위치를 수신받아서 위치 변경
+            ControllMove.socket.On("ballPositionToP2", (string data) => {});
         }
     }
 }

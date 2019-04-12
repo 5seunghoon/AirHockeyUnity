@@ -20,6 +20,8 @@ public class ControllMove : MonoBehaviour
 
     string url = "http://127.0.0.1:3000";
     public static Socket socket;
+
+    public static String playerType = "P1";
     
     void Start()
     {
