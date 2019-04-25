@@ -21,7 +21,7 @@ public class ControllMove : MonoBehaviour
     string url = "http://127.0.0.1:3000";
     public static Socket socket;
 
-    public static String playerType = "P2";
+    public static String playerType = "P1";
 
     void Start()
     {
@@ -37,7 +37,7 @@ public class ControllMove : MonoBehaviour
         BallScript.isSendBallPosition = true;
         Debug.Log("game start");
 
-        if (playerType == "P2") invalidCollider(); 
+        if (playerType == "P2") invalidCollider();
     }
 
     private void invalidCollider()
@@ -46,7 +46,7 @@ public class ControllMove : MonoBehaviour
         Debug.Log("invalid collider");
         var walls = GameObject.FindGameObjectsWithTag("WALL");
         var floors = GameObject.FindGameObjectsWithTag("FLOOR");
-        
+
         foreach (var wall in walls)
         {
             wall.GetComponent<Collider>().isTrigger = true;
@@ -77,21 +77,25 @@ public class ControllMove : MonoBehaviour
             Debug.Log("space bar down, user Ready : " + playerType);
         }
 
-        /*
+
         controller = new Controller();
         Frame frame = controller.Frame();
         List<Hand> hands = frame.Hands;
         if (frame.Hands.Count > 0)
         {
-            Hand fristHand = hands[0];
+            var handPosition = hands[0].PalmPosition;
+            Debug.Log("x : " + handPosition.x + ", y : " + handPosition.y + ", z : " + handPosition.z);
+            GameObject.FindGameObjectWithTag("STICK").transform.position = new Vector3(
+                handPosition.x / 1000f,
+                //handPosition.y / 1000f - 0.25f, 
+                -0.1f,
+                handPosition.z / -1000f + 0.2f);
         }
-        HandPalmPitch = hands[0].PalmNormal.Pitch;
-        HandPalmRoll = hands[0].PalmNormal.Roll;
-        HandPalmYam = hands[0].PalmNormal.Yaw;
 
-        HandWristRot = hands[0].WristPosition.Pitch;
-
-        Debug.Log("Pitch : " + HandPalmPitch + ", Roll : " + HandPalmRoll + ", Yam : " + HandPalmYam);
-        */
+        //HandPalmPitch = hands[0].PalmNormal.Pitch;
+        //HandPalmRoll = hands[0].PalmNormal.Roll;
+        //HandPalmYam = hands[0].PalmNormal.Yaw;
+        //HandWristRot = hands[0].WristPosition.Pitch;
+        //Debug.Log("Pitch : " + HandPalmPitch + ", Roll : " + HandPalmRoll + ", Yam : " + HandPalmYam);
     }
 }
