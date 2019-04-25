@@ -21,17 +21,17 @@ public class ControllMove : MonoBehaviour
     string url = "http://127.0.0.1:3000";
     public static Socket socket;
 
-    public static String playerType = "P2";
+    public static String playerType = "P1";
 
     void Start()
     {
         socket = Socket.Connect(url);
         socket.On("connect", (string data) => { Debug.Log("connect with server"); });
-        socket.On("startGame", (string data) => { gameStart(data); });
+        socket.On("startGame", gameStart);
         ballReset(); // 공 위치 초기화 
     }
 
-    void gameStart(String data)
+    private void gameStart(String data)
     {
         //playerType = data.playerType
         BallScript.isSendBallPosition = true;
@@ -40,7 +40,7 @@ public class ControllMove : MonoBehaviour
         if (playerType == "P2") invalidCollider(); 
     }
 
-    void invalidCollider()
+    private void invalidCollider()
     {
         // Player 2일 경우, 충돌이 안되게 해야함.
         Debug.Log("invalid collider");

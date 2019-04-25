@@ -7,6 +7,8 @@ TagManager:
   - P1GOAL
   - P2GOAL
   - BALL
+  - WALL
+  - FLOOR
   layers:
   - Default
   - TransparentFX
