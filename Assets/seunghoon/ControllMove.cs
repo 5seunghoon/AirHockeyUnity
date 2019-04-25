@@ -15,20 +15,47 @@ public class ControllMove : MonoBehaviour
     float HandPalmYam;
     float HandPalmRoll;
     float HandWristRot;
-    
+
     private DateTime prevTime = DateTime.Now;
 
     string url = "http://127.0.0.1:3000";
     public static Socket socket;
 
-    public static String playerType = "P1";
-    
+    public static String playerType = "P2";
+
     void Start()
     {
         socket = Socket.Connect(url);
         socket.On("connect", (string data) => { Debug.Log("connect with server"); });
-        socket.On("ballPositionSendingStart", (string data) => { BallScript.isSendBallPosition = true; });
+        socket.On("startGame", (string data) => { gameStart(data); });
         ballReset(); // 공 위치 초기화 
+    }
+
+    void gameStart(String data)
+    {
+        //playerType = data.playerType
+        BallScript.isSendBallPosition = true;
+        Debug.Log("game start");
+
+        if (playerType == "P2") invalidCollider(); 
+    }
+
+    void invalidCollider()
+    {
+        // Player 2일 경우, 충돌이 안되게 해야함.
+        Debug.Log("invalid collider");
+        var walls = GameObject.FindGameObjectsWithTag("WALL");
+        var floors = GameObject.FindGameObjectsWithTag("FLOOR");
+        
+        foreach (var wall in walls)
+        {
+            wall.GetComponent<Collider>().isTrigger = true;
+        }
+
+        foreach (var floor in floors)
+        {
+            floor.GetComponent<Collider>().isTrigger = true;
+        }
     }
 
     void ballReset()
@@ -44,9 +71,10 @@ public class ControllMove : MonoBehaviour
         // 스페이스 바 눌리면 공 위치 초기화
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Debug.Log("space bar down");
             ballReset();
-            socket.EmitJson("TEST_EVENT", "");
+            var readyJsonStr = "{\"player\":\"" + playerType + "\"}";
+            socket.EmitJson("userReady", readyJsonStr);
+            Debug.Log("space bar down, user Ready : " + playerType);
         }
 
         /*
