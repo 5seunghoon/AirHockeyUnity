@@ -23,6 +23,10 @@ public class BallScript : MonoBehaviour
         BallPositionModel ballPositionModel = JsonUtility.FromJson<BallPositionModel>(data);
         Debug.Log("bpm x : " + ballPositionModel.x + ", bpm y : " + ballPositionModel.y + ", bpm z : " +
                   ballPositionModel.z);
+        
+        //change ball position
+        Vector3 newPositionVector = new Vector3(ballPositionModel.x, ballPositionModel.y, ballPositionModel.z);
+        transform.position = newPositionVector;
     }
 
     // Update is called once per frame
