@@ -85,11 +85,11 @@ public class ControllMove : MonoBehaviour
         {
             var handPosition = hands[0].PalmPosition;
             Debug.Log("x : " + handPosition.x + ", y : " + handPosition.y + ", z : " + handPosition.z);
-            GameObject.FindGameObjectWithTag("STICK").transform.position = new Vector3(
-                handPosition.x / 1000f,
+            GameObject.FindGameObjectWithTag("STICK1").transform.position = new Vector3(
+                handPosition.x / 700f,
                 //handPosition.y / 1000f - 0.25f, 
                 -0.1f,
-                handPosition.z / -1000f + 0.2f);
+                handPosition.z / -700f + 0.2f);
         }
 
         //HandPalmPitch = hands[0].PalmNormal.Pitch;
