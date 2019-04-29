@@ -55,7 +55,7 @@ public class BallScript : MonoBehaviour
         if (ControllMove.playerType == "P2")
         {
             // 공 위치를 수신받아서 위치 변경
-            ControllMove.socket.On("ballPositionToP2", setBallPosition);
+            ControllMove.socket.On("ballPositionEmit", setBallPosition);
         }
     }
 }

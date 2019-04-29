@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Leap;
 using Leap.Unity;
+using seunghoon;
 using socket.io;
 
 public class ControllMove : MonoBehaviour
@@ -18,7 +19,7 @@ public class ControllMove : MonoBehaviour
 
     private DateTime prevTime = DateTime.Now;
 
-    string url = "http://127.0.0.1:3000";
+    string url = "http://b5def756.ngrok.io";
     public static Socket socket;
 
     public static String playerType = "P1";
@@ -27,8 +28,16 @@ public class ControllMove : MonoBehaviour
     {
         socket = Socket.Connect(url);
         socket.On("connect", (string data) => { Debug.Log("connect with server"); });
-        socket.On("startGame", gameStart);
+        socket.On("gameStartEmit", gameStart);
+        socket.On("playerOnEmit", playerOn);
         ballReset(); // 공 위치 초기화 
+    }
+
+    private void playerOn(String data)
+    {
+        PlayerModel playerModel = JsonUtility.FromJson<PlayerModel>(data);
+        playerType = playerModel.player;
+        Debug.Log("player on : " + playerType);
     }
 
     private void gameStart(String data)
@@ -77,11 +86,17 @@ public class ControllMove : MonoBehaviour
             Debug.Log("space bar down, user Ready : " + playerType);
         }
 
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            socket.EmitJson("playerOn", "");
+        }
+
 
         controller = new Controller();
         Frame frame = controller.Frame();
         List<Hand> hands = frame.Hands;
-        if (frame.Hands.Count > 0)
+        //if (frame.Hands.Count > 0)
+        if (false)
         {
             var handPosition = hands[0].PalmPosition;
             Debug.Log("x : " + handPosition.x + ", y : " + handPosition.y + ", z : " + handPosition.z);
