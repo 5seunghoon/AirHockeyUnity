@@ -32,6 +32,7 @@ public class BallScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // 공 위치를 서버로 보냄 
         if (ControllMove.playerType == "P1" && isSendBallPosition &&
             Math.Abs(DateTime.Now.Ticks - prevTime.Ticks) > 1000000)
         {
