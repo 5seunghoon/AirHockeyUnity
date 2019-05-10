@@ -17,9 +17,11 @@ public class ControllMove : MonoBehaviour
     float HandPalmRoll;
     float HandWristRot;
 
+    private bool alreadyReady = false;
+
     private DateTime prevTime = DateTime.Now;
 
-    string url = "http://b5def756.ngrok.io";
+    private string url = "http://ec2-13-58-99-209.us-east-2.compute.amazonaws.com:3000/";
     public static Socket socket;
 
     public static String playerType = "P1";
@@ -27,44 +29,35 @@ public class ControllMove : MonoBehaviour
     void Start()
     {
         socket = Socket.Connect(url);
-        socket.On("connect", (string data) => { Debug.Log("connect with server"); });
-        socket.On("gameStartEmit", gameStart);
-        socket.On("playerOnEmit", playerOn);
+        socket.On("connect", (string data) => { });
+        socket.On("userReadyOn", userReadyOn); 
+        socket.On("gameStart", gameStart); 
         ballReset(); // 공 위치 초기화 
     }
 
-    private void playerOn(String data)
+    private void userReadyOn(String data) // Player1, Player2 지정에 대한 대기
     {
         PlayerModel playerModel = JsonUtility.FromJson<PlayerModel>(data);
         playerType = playerModel.player;
-        Debug.Log("player on : " + playerType);
+        Debug.Log("userReadyOn : " + playerType);
     }
 
-    private void gameStart(String data)
+    private void gameStart(String data) // 게임 시작 신호 대기
     {
-        //playerType = data.playerType
         BallScript.isSendBallPosition = true;
         Debug.Log("game start");
-
-        if (playerType == "P2") invalidCollider();
+        if (playerType == "P2") invalidCollider(); // Player2일 경우 물리 계산 disable
     }
 
-    private void invalidCollider()
+    private void invalidCollider() // Player 2일 경우에, 공과 벽은 충돌하면 안됨
     {
-        // Player 2일 경우, 충돌이 안되게 해야함.
         Debug.Log("invalid collider");
+        
+        // 벽과 바닥의 object에 대해 충돌 disable
         var walls = GameObject.FindGameObjectsWithTag("WALL");
         var floors = GameObject.FindGameObjectsWithTag("FLOOR");
-
-        foreach (var wall in walls)
-        {
-            wall.GetComponent<Collider>().isTrigger = true;
-        }
-
-        foreach (var floor in floors)
-        {
-            floor.GetComponent<Collider>().isTrigger = true;
-        }
+        foreach (var wall in walls) wall.GetComponent<Collider>().isTrigger = true;
+        foreach (var floor in floors) floor.GetComponent<Collider>().isTrigger = true;
     }
 
     void ballReset()
@@ -77,40 +70,43 @@ public class ControllMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // 스페이스 바 눌리면 공 위치 초기화
-        if (Input.GetKeyDown(KeyCode.Space))
+        // 스페이스 바 눌리면 레디 (1회만)
+        if (Input.GetKeyDown(KeyCode.Space) && !alreadyReady)
+        {
+            var readyJsonStr = "{\"player\":\"" + playerType + "\"}";
+            //socket.EmitJson("userReady", readyJsonStr);
+            socket.EmitJson("userReady", "");
+            Debug.Log("space bar down, user Ready : " + playerType);
+            alreadyReady = true;
+        }
+        
+        
+        // R키 눌리면 공 위치 초기화
+        if (Input.GetKeyDown(KeyCode.R) && playerType == "P1")
         {
             ballReset();
-            var readyJsonStr = "{\"player\":\"" + playerType + "\"}";
-            socket.EmitJson("userReady", readyJsonStr);
-            Debug.Log("space bar down, user Ready : " + playerType);
+            //socket.EmitJson("playerOn", "");
         }
-
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            socket.EmitJson("playerOn", "");
-        }
+        
 
 
         controller = new Controller();
         Frame frame = controller.Frame();
         List<Hand> hands = frame.Hands;
-        //if (frame.Hands.Count > 0)
-        if (false)
+        if (frame.Hands.Count > 0)
+        //if (false)
         {
             var handPosition = hands[0].PalmPosition;
-            Debug.Log("x : " + handPosition.x + ", y : " + handPosition.y + ", z : " + handPosition.z);
-            GameObject.FindGameObjectWithTag("STICK1").transform.position = new Vector3(
+            //Debug.Log("x : " + handPosition.x + ", y : " + handPosition.y + ", z : " + handPosition.z);
+
+            string stickTag = "";
+            if (playerType == "P1") stickTag = "STICK1";
+            else stickTag = "STICK2";
+            
+            GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(
                 handPosition.x / 700f,
-                //handPosition.y / 1000f - 0.25f, 
                 -0.1f,
                 handPosition.z / -700f + 0.2f);
         }
-
-        //HandPalmPitch = hands[0].PalmNormal.Pitch;
-        //HandPalmRoll = hands[0].PalmNormal.Roll;
-        //HandPalmYam = hands[0].PalmNormal.Yaw;
-        //HandWristRot = hands[0].WristPosition.Pitch;
-        //Debug.Log("Pitch : " + HandPalmPitch + ", Roll : " + HandPalmRoll + ", Yam : " + HandPalmYam);
     }
 }

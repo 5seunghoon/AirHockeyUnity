@@ -22,7 +22,7 @@ public class GoalScript : MonoBehaviour
     void OnTriggerEnter(Collider col)
     {
         // 벽에 닿으면 공 위치 초기화
-        if (col.tag == "BALL")
+        if (col.CompareTag("BALL"))
         {
             if (DateTime.Now.Ticks - prevTime.Ticks > 10000000) // 1초에 한번만 Emit
             {
