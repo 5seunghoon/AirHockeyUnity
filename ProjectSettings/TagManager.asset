@@ -11,6 +11,7 @@ TagManager:
   - FLOOR
   - STICK1
   - STICK2
+  - LEAP_CONTROLLER
   layers:
   - Default
   - TransparentFX

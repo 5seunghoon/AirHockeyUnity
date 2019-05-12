@@ -20,10 +20,10 @@ public class BallScript : MonoBehaviour
 
     private void setBallPosition(string data)
     {
-        Debug.Log("setBallPosition data : " + data);
+        //Debug.Log("setBallPosition data : " + data);
         BallPositionModel ballPositionModel = JsonUtility.FromJson<BallPositionModel>(data);
-        Debug.Log("bpm x : " + ballPositionModel.x + ", bpm y : " + ballPositionModel.y + ", bpm z : " +
-                  ballPositionModel.z);
+        //Debug.Log("bpm x : " + ballPositionModel.x + ", bpm y : " + ballPositionModel.y + ", bpm z : " +
+        //          ballPositionModel.z);
         
         //change ball position
         Vector3 newPositionVector = new Vector3(ballPositionModel.x, ballPositionModel.y, ballPositionModel.z);

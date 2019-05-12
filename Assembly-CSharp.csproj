@@ -255,6 +255,8 @@
     <Compile Include="Assets\seunghoon\BallScript.cs" />
     <Compile Include="Assets\seunghoon\ControllMove.cs" />
     <Compile Include="Assets\seunghoon\GoalScript.cs" />
+    <Compile Include="Assets\seunghoon\MainCamera.cs" />
+    <Compile Include="Assets\seunghoon\Player2Camera.cs" />
     <Compile Include="Assets\seunghoon\PlayerModel.cs" />
     <Compile Include="Assets\seunghoon\StickScript.cs" />
     <None Include="Assets\LeapMotion\Core\Resources\LeapCG.cginc" />
