@@ -60,17 +60,27 @@
     <Reference Include="UnityEditor">
       <HintPath>/Applications/Unity/Hub/Editor/2019.1.0f2/Unity.app/Contents/Managed/UnityEditor.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\..\..\Applications\Unity\Hub\Editor\2019.1.0f2\Unity.app\Contents\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\__Sample\Client\Src\Acks.cs" />
     <Compile Include="Assets\__Sample\Client\Src\Connect.cs" />
     <Compile Include="Assets\__Sample\Client\Src\Events.cs" />
     <Compile Include="Assets\__Sample\Client\Src\Namespace.cs" />
+    <Compile Include="Assets\harin\EndText.cs" />
+    <Compile Include="Assets\harin\itemBox.cs" />
     <Compile Include="Assets\harin\Player1.cs" />
+    <Compile Include="Assets\harin\Player1_score.cs" />
     <Compile Include="Assets\harin\Player2.cs" />
+    <Compile Include="Assets\harin\Player2_score.cs" />
     <Compile Include="Assets\harin\ReadySignal.cs" />
     <Compile Include="Assets\harin\ReadyText.cs" />
+    <Compile Include="Assets\harin\StartText.cs" />
     <Compile Include="Assets\harin\Timer.cs" />
+    <Compile Include="Assets\harin\WinOrLose.cs" />
     <Compile Include="Assets\LeapMotion\Core\Examples\Example Assets\InertiaPostProcessProvider.cs" />
     <Compile Include="Assets\LeapMotion\Core\Examples\Example Assets\ProjectionPostProcessProvider.cs" />
     <Compile Include="Assets\LeapMotion\Core\Plugins\LeapCSharp\Arm.cs" />
