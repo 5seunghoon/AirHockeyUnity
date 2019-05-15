@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
 using Leap;
 using Leap.Unity;
 using seunghoon;
 using socket.io;
+using UnityEngine.Networking;
 
-public class ControllMove : MonoBehaviour
+public class ControllMove : NetworkBehaviour
 {
     // socket.io for unity : https://github.com/nhnent/socket.io-client-unity3d/
 
@@ -21,27 +23,32 @@ public class ControllMove : MonoBehaviour
     public Camera player2Camera;
 
     private bool alreadyReady = false;
+    private bool isConnect = false;
 
-    private DateTime prevTime = DateTime.Now;
+    private DateTime stickPrevTime = DateTime.Now;
 
     //private string url = "http://ec2-13-58-99-209.us-east-2.compute.amazonaws.com:3000/";
     //private string url = "http://759eb21d.ngrok.io/";
-    private string url = "http://127.0.0.1:3000";
+    private string url = "http://172.30.97.24:3000";
+    //private string url = "http://127.0.0.1:3000";
 
     //private string url = "http://172.20.10.2:3000/";
     public static Socket socket;
 
     public static String playerType = "P1";
 
+    private static DateTime pastTestDateTime;
+
     void Start()
     {
         socket = Socket.Connect(url);
-        socket.On("connect", () => { });
+        socket.On("connect", () => { isConnect = true; });
         socket.On("userReadyOn", userReadyOn);
         socket.On("gameStart", gameStart);
+        socket.On("handPositionEmit", handPositionCallback);
         ballReset(); // 공 위치 초기화 
     }
-
+    
     public void showPlayer1Camera()
     {
         player2Camera.enabled = false;
@@ -52,6 +59,16 @@ public class ControllMove : MonoBehaviour
     {
         player1Camera.enabled = false;
         player2Camera.enabled = true;
+    }
+
+    private void handPositionCallback(String data)
+    {
+        if (playerType == "P1")
+        {
+            HandPositionModel handPositionModel = JsonUtility.FromJson<HandPositionModel>(data);
+            GameObject.FindGameObjectWithTag("STICK2").transform.position =
+                new Vector3(handPositionModel.x, handPositionModel.y, handPositionModel.z);
+        }
     }
 
     private void userReadyOn(String data) // Player1, Player2 지정에 대한 대기
@@ -101,7 +118,7 @@ public class ControllMove : MonoBehaviour
     void Update()
     {
         // 스페이스 바 눌리면 레디 (1회만)
-        if (Input.GetKeyDown(KeyCode.Space) && !alreadyReady)
+        if (Input.GetKeyDown(KeyCode.Space) && !alreadyReady && isConnect)
         {
             var readyJsonStr = "{\"player\":\"" + playerType + "\"}";
             //socket.EmitJson("userReady", readyJsonStr);
@@ -131,18 +148,28 @@ public class ControllMove : MonoBehaviour
             if (playerType == "P1")
             {
                 stickTag = "STICK1";
-                GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(
-                    handPosition.x / 700f,
-                    -0.1f,
-                    handPosition.z / -700f + 0.2f);
+                var x = handPosition.x / 700f;
+                var y = -0.1f;
+                var z = handPosition.z / -700f + 0.2f;
+                GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(x, y, z);
             }
+
             else
             {
                 stickTag = "STICK2";
-                GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(
-                    handPosition.x * -1f / 700f,
-                    -0.1f,
-                    (handPosition.z / -700f + 0.2f) * -1f + 1.8f);
+
+                var x = handPosition.x * -1f / 700f;
+                var y = -0.1f;
+                var z = (handPosition.z / -700f + 0.2f) * -1f + 1.8f;
+                GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(x, y, z);
+
+                if ((DateTime.Now - stickPrevTime).Ticks > 1000000)
+                {
+                    stickPrevTime = DateTime.Now;
+                    var positionJsonStr = "{\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z + ", \"player\":" + "\"" +
+                                          playerType + "\"" + "}";
+                    socket.EmitJson("handPosition", positionJsonStr);
+                }
             }
         }
     }

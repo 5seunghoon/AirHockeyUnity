@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Leap;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class StickScript : MonoBehaviour
+public class StickScript : NetworkBehaviour
 {
     public float nowXSpeed;
     public float nowYSpeed;
@@ -27,13 +28,15 @@ public class StickScript : MonoBehaviour
         prevY = position.z;
         prevSpeedTime = DateTime.Now;
         prevTriggerTime = DateTime.Now;
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(ControllMove.playerType == "P1" && CompareTag("STICK1")) calcSpeed();  
+        if(ControllMove.playerType == "P1") calcSpeed();
     }
+
 
     private void calcSpeed()
     {
@@ -65,7 +68,7 @@ public class StickScript : MonoBehaviour
             Vector3 inNormal = other.transform.position - transform.position;
             Debug.Log("inNormal : " + inNormal);
             inNormal.y = 0;
-            other.GetComponent<BallScript>().ballAddForce(inNormal, new Vector3(nowXSpeed * 1000,0,nowZSpeed * 1000));
+            other.GetComponent<BallScript>().ballAddForce(inNormal, new Vector3(nowXSpeed * 5000,0,nowZSpeed * 5000));
             //Debug.Log("STICK VELOCITY : " + GetComponent<Rigidbody>().velocity);
         }
     }

@@ -255,9 +255,12 @@
     <Compile Include="Assets\seunghoon\BallScript.cs" />
     <Compile Include="Assets\seunghoon\ControllMove.cs" />
     <Compile Include="Assets\seunghoon\GoalScript.cs" />
+    <Compile Include="Assets\seunghoon\HandPositionModel.cs" />
     <Compile Include="Assets\seunghoon\MainCamera.cs" />
     <Compile Include="Assets\seunghoon\Player2Camera.cs" />
     <Compile Include="Assets\seunghoon\PlayerModel.cs" />
+    <Compile Include="Assets\seunghoon\Stick1Script.cs" />
+    <Compile Include="Assets\seunghoon\Stick2Script.cs" />
     <Compile Include="Assets\seunghoon\StickScript.cs" />
     <None Include="Assets\LeapMotion\Core\Resources\LeapCG.cginc" />
     <None Include="Assets\LeapMotion\Core\README_BEFORE_UPDATING.txt" />

@@ -28,6 +28,9 @@ public class BallScript : MonoBehaviour
         //change ball position
         Vector3 newPositionVector = new Vector3(ballPositionModel.x, ballPositionModel.y, ballPositionModel.z);
         transform.position = newPositionVector;
+        GetComponent<Rigidbody>().velocity = Vector3.zero;
+        var jstr = "{\"interval\":" + (DateTime.Now.Ticks - ballPositionModel.tick) + "}";
+        ControllMove.socket.EmitJson("TEST_EMIT", jstr);
     }
 
     private string ballPositionToJson()
@@ -39,11 +42,11 @@ public class BallScript : MonoBehaviour
         var z = position.z;
 
         // 반올림
-        x = Mathf.Round(x * 100000f) * 0.00001f;
+        x = Mathf.Round(x * 100000f) * 0.00001f;     
         y = Mathf.Round(y * 100000f) * 0.00001f;
         z = Mathf.Round(z * 100000f) * 0.00001f;
 
-        var positionJsonStr = "{\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z + "}";
+        var positionJsonStr = "{\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z + ", \"tick\":" + DateTime.Now.Ticks + "}";
         return positionJsonStr;
     }
 
@@ -76,6 +79,7 @@ public class BallScript : MonoBehaviour
     {
         inNormal.x += stickForceVector.x;
         inNormal.z += stickForceVector.z;
+        GetComponent<Rigidbody>().velocity = Vector3.zero;
         GetComponent<Rigidbody>().AddForce(inNormal, ForceMode.VelocityChange);
     }
 }
