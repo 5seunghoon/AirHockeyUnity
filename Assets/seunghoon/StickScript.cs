@@ -14,11 +14,14 @@ public class StickScript : NetworkBehaviour
     public float prevY;
     public float prevZ;
     public DateTime prevSpeedTime;
+
     public DateTime prevTriggerTime;
     // Start is called before the first frame update
+
+    public static float stickYPosition = -0.083f;
+
     void Start()
     {
-        
         nowXSpeed = 0;
         nowYSpeed = 0;
         nowZSpeed = 0;
@@ -28,15 +31,23 @@ public class StickScript : NetworkBehaviour
         prevY = position.z;
         prevSpeedTime = DateTime.Now;
         prevTriggerTime = DateTime.Now;
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(ControllMove.playerType == "P1") calcSpeed();
+        //if (ControllMove.playerType == "P1") calcSpeed();
+        if (ControllMove.playerType == "P2") disablePhysics();
+        GetComponent<Rigidbody>().velocity = Vector3.zero;
+        transform.rotation = Quaternion.identity;
     }
 
+
+    private void disablePhysics()
+    {
+        //GetComponent<Rigidbody>().isKinematic = true;
+        GetComponent<Rigidbody>().detectCollisions = false;
+    }
 
     private void calcSpeed()
     {
@@ -44,7 +55,7 @@ public class StickScript : NetworkBehaviour
         var x = position.x;
         var y = position.y;
         var z = position.z;
-        
+
         var timeInterval = (DateTime.Now - prevSpeedTime).Milliseconds;
 
         nowXSpeed = (x - prevX) / timeInterval;
@@ -55,21 +66,34 @@ public class StickScript : NetworkBehaviour
         prevY = y;
         prevZ = z;
         prevSpeedTime = DateTime.Now;
-        
+
         //Debug.Log("nowXSpeed : " + nowXSpeed + ", nowYSpeed : " + nowYSpeed + ", nowZSpeed : " + nowZSpeed);
-        
+
+        transform.rotation = Quaternion.identity;
     }
+
+    private void OnCollisionExit(Collision other)
+    {
+        // 누가 공을 쳤는지 저장
+        if (other.gameObject.CompareTag("BALL"))
+        {
+            if (gameObject.CompareTag("STICK1")) BallScript.whoPush = "P1";
+            else if (gameObject.CompareTag("STICK2")) BallScript.whoPush = "P2";
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        if (ControllMove.playerType == "P1" && other.CompareTag("BALL") && (DateTime.Now - prevTriggerTime).Ticks >= 2000000) //200ms당 1회
-        {
-            prevTriggerTime = DateTime.Now;
-            Debug.Log("BALL ENTER");
-            Vector3 inNormal = other.transform.position - transform.position;
-            Debug.Log("inNormal : " + inNormal);
-            inNormal.y = 0;
-            other.GetComponent<BallScript>().ballAddForce(inNormal, new Vector3(nowXSpeed * 5000,0,nowZSpeed * 5000));
-            //Debug.Log("STICK VELOCITY : " + GetComponent<Rigidbody>().velocity);
-        }
+        /*
+                if (ControllMove.playerType == "P1" && other.CompareTag("BALL") && (DateTime.Now - prevTriggerTime).Ticks >= 2000000) //200ms당 1회
+                {
+                    prevTriggerTime = DateTime.Now;
+                    Debug.Log("BALL ENTER");
+                    Vector3 inNormal = other.transform.position - transform.position;
+                    Debug.Log("inNormal : " + inNormal);
+                    inNormal.y = 0;
+                    //other.GetComponent<BallScript>().ballAddForce(inNormal, new Vector3(nowXSpeed * 1000,0,nowZSpeed * 1000));
+                    //Debug.Log("STICK VELOCITY : " + GetComponent<Rigidbody>().velocity);
+                }*/
     }
 }

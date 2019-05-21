@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using seunghoon;
 using UnityEngine;
 
 public class GoalScript : MonoBehaviour
 {
-    public static Vector3 resetVector3 = new Vector3(0f, -0.1145f, 0.304f);
 
     private DateTime prevTime = DateTime.Now;
 
@@ -34,8 +34,17 @@ public class GoalScript : MonoBehaviour
                               "\",\"score\":\"" + BallScript.scorePoint + "\"}";
                 ControllMove.socket.EmitJson("scoreUp", jsonStr);
 
-                col.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                col.gameObject.transform.position = resetVector3;
+                GameObject o;
+                (o = col.gameObject).GetComponent<Rigidbody>().velocity = Vector3.zero;
+
+                if (BallScript.whoPush == "P2")
+                {
+                    o.transform.position = BallScript.player2ResetVector3;
+                }
+                else
+                {
+                    o.transform.position = BallScript.player1ResetVector3;
+                }
             }
         }
     }

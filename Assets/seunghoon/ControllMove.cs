@@ -29,8 +29,8 @@ public class ControllMove : NetworkBehaviour
 
     //private string url = "http://ec2-13-58-99-209.us-east-2.compute.amazonaws.com:3000/";
     //private string url = "http://759eb21d.ngrok.io/";
-    private string url = "http://172.30.97.24:3000";
-    //private string url = "http://127.0.0.1:3000";
+    //private string url = "http://172.30.97.24:3000";
+    private string url = "http://127.0.0.1:3000";
 
     //private string url = "http://172.20.10.2:3000/";
     public static Socket socket;
@@ -84,6 +84,7 @@ public class ControllMove : NetworkBehaviour
         Debug.Log("game start");
         if (playerType == "P2")
         {
+            Debug.Log("P2");
             showPlayer2Camera();
             invalidCollider(); // Player2일 경우 물리 계산 disable
             //changeLeapControllerPosition();
@@ -103,15 +104,31 @@ public class ControllMove : NetworkBehaviour
         // 벽과 바닥의 object에 대해 충돌 disable
         var walls = GameObject.FindGameObjectsWithTag("WALL");
         var floors = GameObject.FindGameObjectsWithTag("FLOOR");
-        foreach (var wall in walls) wall.GetComponent<Collider>().isTrigger = true;
-        foreach (var floor in floors) floor.GetComponent<Collider>().isTrigger = true;
+        var balls = GameObject.FindGameObjectsWithTag("BALL");
+        foreach (var wall in walls)
+        {
+            wall.GetComponent<Rigidbody>().isKinematic = true;
+            wall.GetComponent<Rigidbody>().detectCollisions = false;
+        }
+
+        foreach (var floor in floors)
+        {
+            floor.GetComponent<Rigidbody>().isKinematic = true;
+            floor.GetComponent<Rigidbody>().detectCollisions = false;
+        }
+
+        foreach (var ball in balls)
+        {
+            ball.GetComponent<Rigidbody>().isKinematic = true;
+            ball.GetComponent<Rigidbody>().detectCollisions = false;
+        }
     }
 
     void ballReset()
     {
         GameObject ball = GameObject.FindWithTag("BALL");
         ball.GetComponent<Rigidbody>().velocity = Vector3.zero;
-        ball.transform.position = GoalScript.resetVector3;
+        ball.transform.position = BallScript.player1ResetVector3;
     }
 
     // Update is called once per frame
@@ -149,19 +166,49 @@ public class ControllMove : NetworkBehaviour
             {
                 stickTag = "STICK1";
                 var x = handPosition.x / 700f;
-                var y = -0.1f;
-                var z = handPosition.z / -700f + 0.2f;
+                var y = StickScript.stickYPosition;
+                var z = handPosition.z / -700f + 0.75f;
                 GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(x, y, z);
             }
-
             else
             {
                 stickTag = "STICK2";
 
                 var x = handPosition.x * -1f / 700f;
-                var y = -0.1f;
-                var z = (handPosition.z / -700f + 0.2f) * -1f + 1.8f;
+                var y = StickScript.stickYPosition;
+                var z = (handPosition.z / -700f + 0.2f) * -1f + 1.5f;
                 GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(x, y, z);
+
+                if ((DateTime.Now - stickPrevTime).Ticks > 1000000)
+                {
+                    stickPrevTime = DateTime.Now;
+                    var positionJsonStr = "{\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z + ", \"player\":" + "\"" +
+                                          playerType + "\"" + "}";
+                    socket.EmitJson("handPosition", positionJsonStr);
+                }
+            }
+        }
+        else
+        {
+            string stickTag = "";
+            if (playerType == "P1")
+            {
+                stickTag = "STICK1";
+                var x = 0f;
+                var y = StickScript.stickYPosition;
+                var z = 0.5f;
+                GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(x, y, z);
+            }
+            else
+            {
+                stickTag = "STICK2";
+
+                var x = 0f;
+                var y = StickScript.stickYPosition;
+                var z = 1.4f;
+                var stick = GameObject.FindGameObjectWithTag(stickTag);
+                stick.transform.position = new Vector3(x, y, z);
+                stick.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
                 if ((DateTime.Now - stickPrevTime).Ticks > 1000000)
                 {

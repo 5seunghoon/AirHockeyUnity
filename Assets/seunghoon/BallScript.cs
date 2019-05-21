@@ -2,17 +2,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using Leap;
 using seunghoon;
 using UnityEngine;
 
 public class BallScript : MonoBehaviour
 {
+    public static Vector3 player1ResetVector3 = new Vector3(0f, yPosDefault, 0.82f);
+    public static Vector3 player2ResetVector3 = new Vector3(0f, yPosDefault, 1.139f);
+    
     private DateTime prevTime = DateTime.Now;
 
     public static bool isSendBallPosition = false;
 
     public static int scorePoint = 1;
 
+    private static float yPosDefault = -0.112f;
+
+    private static float maxVelocity = 0.7f;
+
+    public static String whoPush = "NONE";
     // Start is called before the first frame update
     void Start()
     {
@@ -53,6 +62,8 @@ public class BallScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        var rigidbody = GetComponent<Rigidbody>();
         // Player 1일 경우, 공 위치를 서버로 송신
         if (ControllMove.playerType == "P1" && isSendBallPosition &&
             Math.Abs(DateTime.Now.Ticks - prevTime.Ticks) > 1000000) //100ms당 1회 
@@ -62,16 +73,34 @@ public class BallScript : MonoBehaviour
             //Debug.Log("position Json Str : " + positionJsonStr);
             //공의 위치를 Socket Emit
             ControllMove.socket.EmitJson("ballPosition", positionJsonStr);
-        }
+        } 
 
-        // Player 2일 경우, 공 위치를 수신받아서 공 위치 변경
         if (ControllMove.playerType == "P2")
         {
-            ControllMove.socket.On("ballPositionEmit", setBallPosition);
+            rigidbody.detectCollisions = false;
         }
 
         Vector3 nowVelocity = GetComponent<Rigidbody>().velocity;
         //Debug.Log("Ball velocity : " + nowVelocity);
+
+        if (rigidbody.velocity.magnitude > 0.06f && rigidbody.velocity.magnitude < 0.12f)
+        {
+            Debug.Log("PUSH");
+            rigidbody.AddForce(rigidbody.velocity.normalized * rigidbody.velocity.magnitude * 1.7f , ForceMode.Impulse);
+        }
+        else if (rigidbody.velocity.magnitude > maxVelocity)
+        {
+            Debug.Log("UNPUSH");
+            var velocity = rigidbody.velocity;
+            rigidbody.velocity = new Vector3(velocity.x * 0.7f, velocity.x * 0.7f, velocity.x * 0.7f);
+        }
+        
+        //y좌표 고정
+        var position = transform.position;
+        position = new Vector3(position.x, yPosDefault, position.z);
+        transform.position = position;
+        
+        transform.rotation = Quaternion.identity;
     }
 
 
@@ -79,7 +108,9 @@ public class BallScript : MonoBehaviour
     {
         inNormal.x += stickForceVector.x;
         inNormal.z += stickForceVector.z;
-        GetComponent<Rigidbody>().velocity = Vector3.zero;
+        var rigid = GetComponent<Rigidbody>();
+        rigid.velocity = Vector3.zero;
+        rigid.angularVelocity = Vector3.zero;
         GetComponent<Rigidbody>().AddForce(inNormal, ForceMode.VelocityChange);
     }
 }
