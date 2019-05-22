@@ -30,9 +30,9 @@ public class ControllMove : NetworkBehaviour
     //private string url = "http://ec2-13-58-99-209.us-east-2.compute.amazonaws.com:3000/";
     //private string url = "http://759eb21d.ngrok.io/";
     //private string url = "http://172.30.97.24:3000";
-    private string url = "http://127.0.0.1:3000";
+    //private string url = "http://127.0.0.1:3000";
 
-    //private string url = "http://172.20.10.2:3000/";
+    private string url = "http://192.168.43.12:3000/";
     public static Socket socket;
 
     public static String playerType = "P1";

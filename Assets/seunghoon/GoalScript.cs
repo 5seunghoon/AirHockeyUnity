@@ -29,8 +29,13 @@ public class GoalScript : MonoBehaviour
                 prevTime = DateTime.Now;
 
                 Debug.Log("Ball Trigger Enter");
+                string getScorePlayer = "P1";
+                if (CompareTag("P2GOAL"))
+                {
+                    getScorePlayer = "P2";
+                }
 
-                var jsonStr = "{\"player\":\"" + ControllMove.playerType +
+                var jsonStr = "{\"player\":\"" + getScorePlayer +
                               "\",\"score\":\"" + BallScript.scorePoint + "\"}";
                 ControllMove.socket.EmitJson("scoreUp", jsonStr);
 
