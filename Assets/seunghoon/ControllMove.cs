@@ -9,6 +9,7 @@ using seunghoon;
 using socket.io;
 using UnityEngine.Networking;
 using UnityEngine.Networking.Match;
+using UnityEngine.UI;
 
 public class ControllMove : NetworkBehaviour
 {
@@ -19,6 +20,10 @@ public class ControllMove : NetworkBehaviour
     float HandPalmYam;
     float HandPalmRoll;
     float HandWristRot;
+
+    public Text youScore;
+    public Text rivalScroe;
+    public Text gameTime;
 
     public IpModel ipModel;
 
@@ -49,9 +54,11 @@ public class ControllMove : NetworkBehaviour
         socket.On("userReadyOn", UserReadyOn);
         socket.On("gameStart", GameStartOn);
         socket.On("handPositionEmit", HandPositionCallback);
+        socket.On("scoreUpEmit", ScoreUpCallback);
+        socket.On("timerEmit", GameTimerCallback);
         BallReset(); // 공 위치 초기화 
     }
-    
+
     public void ShowPlayer1Camera()
     {
         player2Camera.enabled = false;
@@ -72,6 +79,27 @@ public class ControllMove : NetworkBehaviour
             GameObject.FindGameObjectWithTag("STICK2").transform.position =
                 new Vector3(handPositionModel.x, handPositionModel.y, handPositionModel.z);
         }
+    }
+
+    private void ScoreUpCallback(String data)
+    {
+        ScoreModel scoreModel = JsonUtility.FromJson<ScoreModel>(data);
+        if (playerType == "P1")
+        {
+            youScore.text = scoreModel.p1Score;
+            rivalScroe.text = scoreModel.p2Score;
+        }
+        else
+        {
+            youScore.text = scoreModel.p2Score;
+            rivalScroe.text = scoreModel.p1Score;
+        }
+    }
+
+    private void GameTimerCallback(String data)
+    {
+        GameTimeModel gameTimeModel = JsonUtility.FromJson<GameTimeModel>(data);
+        gameTime.text = gameTimeModel.ToString();
     }
 
     private void UserReadyOn(String data) // Player1, Player2 지정에 대한 대기

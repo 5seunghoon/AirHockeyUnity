@@ -254,6 +254,7 @@
     <Compile Include="Assets\seunghoon\BallPositionModel.cs" />
     <Compile Include="Assets\seunghoon\BallScript.cs" />
     <Compile Include="Assets\seunghoon\ControllMove.cs" />
+    <Compile Include="Assets\seunghoon\GameTimeModel.cs" />
     <Compile Include="Assets\seunghoon\GoalScript.cs" />
     <Compile Include="Assets\seunghoon\HandPositionModel.cs" />
     <Compile Include="Assets\seunghoon\IPManager.cs" />
@@ -262,6 +263,7 @@
     <Compile Include="Assets\seunghoon\NetworkCustomManager.cs" />
     <Compile Include="Assets\seunghoon\Player2Camera.cs" />
     <Compile Include="Assets\seunghoon\PlayerModel.cs" />
+    <Compile Include="Assets\seunghoon\ScoreModel.cs" />
     <Compile Include="Assets\seunghoon\Stick1Script.cs" />
     <Compile Include="Assets\seunghoon\Stick2Script.cs" />
     <Compile Include="Assets\seunghoon\StickScript.cs" />
