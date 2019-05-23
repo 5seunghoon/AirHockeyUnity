@@ -8,6 +8,7 @@ using Leap.Unity;
 using seunghoon;
 using socket.io;
 using UnityEngine.Networking;
+using UnityEngine.Networking.Match;
 
 public class ControllMove : NetworkBehaviour
 {
@@ -19,20 +20,22 @@ public class ControllMove : NetworkBehaviour
     float HandPalmRoll;
     float HandWristRot;
 
+    public IpModel ipModel;
+
     public Camera player1Camera;
     public Camera player2Camera;
 
-    private bool alreadyReady = false;
-    private bool isConnect = false;
+    public static bool alreadyReady = false;
+    public static bool isConnect = false;
 
     private DateTime stickPrevTime = DateTime.Now;
 
     //private string url = "http://ec2-13-58-99-209.us-east-2.compute.amazonaws.com:3000/";
     //private string url = "http://759eb21d.ngrok.io/";
     //private string url = "http://172.30.97.24:3000";
-    //private string url = "http://127.0.0.1:3000";
+    private string url = "http://127.0.0.1:3000";
 
-    private string url = "http://192.168.43.12:3000/";
+    //private string url = "http://192.168.43.12:3000/";
     public static Socket socket;
 
     public static String playerType = "P1";
@@ -43,25 +46,25 @@ public class ControllMove : NetworkBehaviour
     {
         socket = Socket.Connect(url);
         socket.On("connect", () => { isConnect = true; });
-        socket.On("userReadyOn", userReadyOn);
-        socket.On("gameStart", gameStart);
-        socket.On("handPositionEmit", handPositionCallback);
-        ballReset(); // 공 위치 초기화 
+        socket.On("userReadyOn", UserReadyOn);
+        socket.On("gameStart", GameStartOn);
+        socket.On("handPositionEmit", HandPositionCallback);
+        BallReset(); // 공 위치 초기화 
     }
     
-    public void showPlayer1Camera()
+    public void ShowPlayer1Camera()
     {
         player2Camera.enabled = false;
         player1Camera.enabled = true;
     }
 
-    public void showPlayer2Camera()
+    private void showPlayer2Camera()
     {
         player1Camera.enabled = false;
         player2Camera.enabled = true;
     }
 
-    private void handPositionCallback(String data)
+    private void HandPositionCallback(String data)
     {
         if (playerType == "P1")
         {
@@ -71,33 +74,33 @@ public class ControllMove : NetworkBehaviour
         }
     }
 
-    private void userReadyOn(String data) // Player1, Player2 지정에 대한 대기
+    private void UserReadyOn(String data) // Player1, Player2 지정에 대한 대기
     {
         PlayerModel playerModel = JsonUtility.FromJson<PlayerModel>(data);
         playerType = playerModel.player;
         Debug.Log("userReadyOn : " + playerType);
+
+        if (playerType == "P1") NetworkCustomManager.StartHostCustom();
     }
 
-    private void gameStart(String data) // 게임 시작 신호 대기
+    private void GameStartOn(String data) // 게임 시작 신호 대기
     {
         BallScript.isSendBallPosition = true;
         Debug.Log("game start");
+
+        ipModel = JsonUtility.FromJson<IpModel>(data);
+        
         if (playerType == "P2")
         {
-            Debug.Log("P2");
+            NetworkCustomManager.StartClientCustom(ipModel.hostIp, 7777);
+            Debug.Log("P2, Host ip : " + ipModel.hostIp);
             showPlayer2Camera();
-            invalidCollider(); // Player2일 경우 물리 계산 disable
+            InvalidCollider(); // Player2일 경우 물리 계산 disable
             //changeLeapControllerPosition();
         }
     }
 
-    private void changeLeapControllerPosition()
-    {
-        GameObject.FindWithTag("LEAP_CONTROLLER").transform.position = new Vector3(0f, -1f, 1.46f);
-        GameObject.FindWithTag("LEAP_CONTROLLER").transform.rotation = Quaternion.Euler(0f, 180f, 0f);
-    }
-
-    private void invalidCollider() // Player 2일 경우에, 공과 벽은 충돌하면 안됨
+    private void InvalidCollider() // Player 2일 경우에, 공과 벽은 충돌하면 안됨
     {
         Debug.Log("invalid collider");
 
@@ -124,31 +127,35 @@ public class ControllMove : NetworkBehaviour
         }
     }
 
-    void ballReset()
+    private void BallReset()
     {
         GameObject ball = GameObject.FindWithTag("BALL");
         ball.GetComponent<Rigidbody>().velocity = Vector3.zero;
         ball.transform.position = BallScript.player1ResetVector3;
     }
 
+    public static void ReadyGame()
+    {
+        if (!alreadyReady && isConnect)
+        {
+            string myIp = IPManager.GetIP(ADDRESSFAM.IPv4);
+            Debug.Log("myIp : " + myIp);
+            var emitJsonStr = "{\"ip\": \"" + myIp + "\"}";
+            socket.EmitJson("userReady", emitJsonStr);
+            alreadyReady = true;
+        }
+    }
+   
     // Update is called once per frame
     void Update()
     {
         // 스페이스 바 눌리면 레디 (1회만)
-        if (Input.GetKeyDown(KeyCode.Space) && !alreadyReady && isConnect)
-        {
-            var readyJsonStr = "{\"player\":\"" + playerType + "\"}";
-            //socket.EmitJson("userReady", readyJsonStr);
-            //socket.EmitJson("userReady", "");
-            socket.Emit("userReady");
-            Debug.Log("space bar down, user Ready : " + playerType);
-            alreadyReady = true;
-        }
+        if (Input.GetKeyDown(KeyCode.Space) ) ReadyGame();
 
         // R키 눌리면 공 위치 초기화
         if (Input.GetKeyDown(KeyCode.R) && playerType == "P1")
         {
-            ballReset();
+            BallReset();
             //socket.EmitJson("playerOn", "");
         }
 
@@ -176,7 +183,7 @@ public class ControllMove : NetworkBehaviour
 
                 var x = handPosition.x * -1f / 700f;
                 var y = StickScript.stickYPosition;
-                var z = (handPosition.z / -700f + 0.2f) * -1f + 1.5f;
+                var z = (handPosition.z / -700f + 0.2f) * -1f + 1.4f;
                 GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(x, y, z);
 
                 if ((DateTime.Now - stickPrevTime).Ticks > 1000000)
@@ -220,4 +227,5 @@ public class ControllMove : NetworkBehaviour
             }
         }
     }
+   
 }

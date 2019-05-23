@@ -27,7 +27,7 @@ public class BallScript : MonoBehaviour
     {
     }
 
-    private void setBallPosition(string data)
+    private void SetBallPosition(string data)
     {
         //Debug.Log("setBallPosition data : " + data);
         BallPositionModel ballPositionModel = JsonUtility.FromJson<BallPositionModel>(data);
@@ -42,7 +42,7 @@ public class BallScript : MonoBehaviour
         ControllMove.socket.EmitJson("TEST_EMIT", jstr);
     }
 
-    private string ballPositionToJson()
+    private string BallPositionToJson()
     {
 
         var position = transform.position;
@@ -69,7 +69,7 @@ public class BallScript : MonoBehaviour
             Math.Abs(DateTime.Now.Ticks - prevTime.Ticks) > 1000000) //100ms당 1회 
         {
             prevTime = DateTime.Now;
-            var positionJsonStr = ballPositionToJson();
+            var positionJsonStr = BallPositionToJson();
             //Debug.Log("position Json Str : " + positionJsonStr);
             //공의 위치를 Socket Emit
             ControllMove.socket.EmitJson("ballPosition", positionJsonStr);
@@ -83,10 +83,13 @@ public class BallScript : MonoBehaviour
         Vector3 nowVelocity = GetComponent<Rigidbody>().velocity;
         //Debug.Log("Ball velocity : " + nowVelocity);
 
-        if (rigidbody.velocity.magnitude > 0.06f && rigidbody.velocity.magnitude < 0.12f)
+        if (rigidbody.velocity.magnitude > 0.06f && rigidbody.velocity.magnitude < 0.18f)
         {
             Debug.Log("PUSH");
-            rigidbody.AddForce(rigidbody.velocity.normalized * rigidbody.velocity.magnitude * 1.7f , ForceMode.Impulse);
+            Debug.Log("a : " + rigidbody.velocity.normalized);
+            Debug.Log("b : " + rigidbody.velocity.normalized * (rigidbody.velocity.magnitude * 20f + 1f));
+            Debug.Log("c : " + rigidbody.velocity.magnitude);
+            rigidbody.AddForce(rigidbody.velocity.normalized * (rigidbody.velocity.magnitude * 10f + 1f) , ForceMode.Impulse);
         }
         else if (rigidbody.velocity.magnitude > maxVelocity)
         {
@@ -104,7 +107,7 @@ public class BallScript : MonoBehaviour
     }
 
 
-    public void ballAddForce(Vector3 inNormal, Vector3 stickForceVector)
+    public void BallAddForce(Vector3 inNormal, Vector3 stickForceVector)
     {
         inNormal.x += stickForceVector.x;
         inNormal.z += stickForceVector.z;

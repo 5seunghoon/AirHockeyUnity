@@ -18,7 +18,7 @@ public class StickScript : NetworkBehaviour
     public DateTime prevTriggerTime;
     // Start is called before the first frame update
 
-    public static float stickYPosition = -0.083f;
+    public static float stickYPosition = -0.0949f;
 
     void Start()
     {
@@ -37,19 +37,19 @@ public class StickScript : NetworkBehaviour
     void Update()
     {
         //if (ControllMove.playerType == "P1") calcSpeed();
-        if (ControllMove.playerType == "P2") disablePhysics();
+        if (ControllMove.playerType == "P2") DisablePhysics();
         GetComponent<Rigidbody>().velocity = Vector3.zero;
         transform.rotation = Quaternion.identity;
     }
 
 
-    private void disablePhysics()
+    private void DisablePhysics()
     {
         //GetComponent<Rigidbody>().isKinematic = true;
         GetComponent<Rigidbody>().detectCollisions = false;
     }
 
-    private void calcSpeed()
+    private void CalcSpeed()
     {
         var position = transform.position;
         var x = position.x;

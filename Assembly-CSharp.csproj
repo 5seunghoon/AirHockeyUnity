@@ -256,7 +256,10 @@
     <Compile Include="Assets\seunghoon\ControllMove.cs" />
     <Compile Include="Assets\seunghoon\GoalScript.cs" />
     <Compile Include="Assets\seunghoon\HandPositionModel.cs" />
+    <Compile Include="Assets\seunghoon\IPManager.cs" />
+    <Compile Include="Assets\seunghoon\IpModel.cs" />
     <Compile Include="Assets\seunghoon\MainCamera.cs" />
+    <Compile Include="Assets\seunghoon\NetworkCustomManager.cs" />
     <Compile Include="Assets\seunghoon\Player2Camera.cs" />
     <Compile Include="Assets\seunghoon\PlayerModel.cs" />
     <Compile Include="Assets\seunghoon\Stick1Script.cs" />
