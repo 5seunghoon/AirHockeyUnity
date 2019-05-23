@@ -10,6 +10,7 @@ using socket.io;
 using UnityEngine.Networking;
 using UnityEngine.Networking.Match;
 using UnityEngine.UI;
+using Image = UnityEngine.UI.Image;
 
 public class ControllMove : NetworkBehaviour
 {
@@ -24,6 +25,8 @@ public class ControllMove : NetworkBehaviour
     public Text youScore;
     public Text rivalScroe;
     public Text gameTime;
+    public Text gameReadyText;
+    public Image gameReadyTextBgImage;
 
     public IpModel ipModel;
 
@@ -50,13 +53,20 @@ public class ControllMove : NetworkBehaviour
     void Start()
     {
         socket = Socket.Connect(url);
-        socket.On("connect", () => { isConnect = true; });
+        socket.On("connect", () =>
+        {
+            isConnect = true;
+            gameReadyText.fontSize = 20;
+            gameReadyText.text = "준비하려면 스페이스바를 눌려주세요";
+        });
         socket.On("userReadyOn", UserReadyOn);
         socket.On("gameStart", GameStartOn);
         socket.On("handPositionEmit", HandPositionCallback);
         socket.On("scoreUpEmit", ScoreUpCallback);
         socket.On("timerEmit", GameTimerCallback);
         BallReset(); // 공 위치 초기화 
+
+        gameReadyText.text = "서버와 연결하는 중...";
     }
 
     public void ShowPlayer1Camera()
@@ -118,6 +128,9 @@ public class ControllMove : NetworkBehaviour
 
         ipModel = JsonUtility.FromJson<IpModel>(data);
         
+        gameReadyText.text = "";
+        gameReadyTextBgImage.enabled = false;
+        
         if (playerType == "P2")
         {
             NetworkCustomManager.StartClientCustom(ipModel.hostIp, 7777);
@@ -126,6 +139,7 @@ public class ControllMove : NetworkBehaviour
             InvalidCollider(); // Player2일 경우 물리 계산 disable
             //changeLeapControllerPosition();
         }
+
     }
 
     private void InvalidCollider() // Player 2일 경우에, 공과 벽은 충돌하면 안됨
@@ -178,7 +192,11 @@ public class ControllMove : NetworkBehaviour
     void Update()
     {
         // 스페이스 바 눌리면 레디 (1회만)
-        if (Input.GetKeyDown(KeyCode.Space) ) ReadyGame();
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            gameReadyText.text = "상대방을 기다리는 중..";
+            ReadyGame();
+        }
 
         // R키 눌리면 공 위치 초기화
         if (Input.GetKeyDown(KeyCode.R) && playerType == "P1")
