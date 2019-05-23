@@ -30,6 +30,8 @@ public class ControllMove : NetworkBehaviour
 
     public IpModel ipModel;
 
+    public GameObject gameItem;
+
     public Camera player1Camera;
     public Camera player2Camera;
 
@@ -42,6 +44,7 @@ public class ControllMove : NetworkBehaviour
     //private string url = "http://759eb21d.ngrok.io/";
     //private string url = "http://172.30.97.24:3000";
     private string url = "http://127.0.0.1:3000";
+    //private string url = "http://59.20.210.216:3000";
 
     //private string url = "http://192.168.43.12:3000/";
     public static Socket socket;
@@ -52,6 +55,8 @@ public class ControllMove : NetworkBehaviour
 
     void Start()
     {
+        gameItem.SetActive(false);
+        
         socket = Socket.Connect(url);
         socket.On("connect", () =>
         {
@@ -64,6 +69,9 @@ public class ControllMove : NetworkBehaviour
         socket.On("handPositionEmit", HandPositionCallback);
         socket.On("scoreUpEmit", ScoreUpCallback);
         socket.On("timerEmit", GameTimerCallback);
+        socket.On("itemEmit", ItemCallback);
+        socket.On("eatItemEmit", ItemEatCallback);
+        socket.On("endItemEmit", ItemEndCallback);
         BallReset(); // 공 위치 초기화 
 
         gameReadyText.text = "서버와 연결하는 중...";
@@ -75,7 +83,7 @@ public class ControllMove : NetworkBehaviour
         player1Camera.enabled = true;
     }
 
-    private void showPlayer2Camera()
+    private void ShowPlayer2Camera()
     {
         player1Camera.enabled = false;
         player2Camera.enabled = true;
@@ -88,6 +96,34 @@ public class ControllMove : NetworkBehaviour
             HandPositionModel handPositionModel = JsonUtility.FromJson<HandPositionModel>(data);
             GameObject.FindGameObjectWithTag("STICK2").transform.position =
                 new Vector3(handPositionModel.x, handPositionModel.y, handPositionModel.z);
+        }
+    }
+
+    private void ItemEndCallback(String data)
+    {
+        ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
+        if (ItemModel.ParseStringToItemNameEnum(itemModel.itemName) == ItemNameEnum.DoubleScore)
+        {
+            GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToSingleScoreBall();
+        }
+    }
+
+    private void ItemEatCallback(String data)
+    {
+        ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
+        if (ItemModel.ParseStringToItemNameEnum(itemModel.itemName) == ItemNameEnum.DoubleScore)
+        {
+            GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToDoubleScoreBall();
+        }
+    }
+
+    private void ItemCallback(String data)
+    {
+        if (playerType == "P2") return;
+        if (!gameItem.GetComponent<GameItemScript>().isAlive)
+        {
+            ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
+            gameItem.GetComponent<GameItemScript>().RespawnItem(itemModel);
         }
     }
 
@@ -127,19 +163,18 @@ public class ControllMove : NetworkBehaviour
         Debug.Log("game start");
 
         ipModel = JsonUtility.FromJson<IpModel>(data);
-        
+
         gameReadyText.text = "";
         gameReadyTextBgImage.enabled = false;
-        
+
         if (playerType == "P2")
         {
             NetworkCustomManager.StartClientCustom(ipModel.hostIp, 7777);
             Debug.Log("P2, Host ip : " + ipModel.hostIp);
-            showPlayer2Camera();
+            ShowPlayer2Camera();
             InvalidCollider(); // Player2일 경우 물리 계산 disable
             //changeLeapControllerPosition();
         }
-
     }
 
     private void InvalidCollider() // Player 2일 경우에, 공과 벽은 충돌하면 안됨
@@ -150,22 +185,26 @@ public class ControllMove : NetworkBehaviour
         var walls = GameObject.FindGameObjectsWithTag("WALL");
         var floors = GameObject.FindGameObjectsWithTag("FLOOR");
         var balls = GameObject.FindGameObjectsWithTag("BALL");
+        var items = GameObject.FindGameObjectsWithTag("ITME");
         foreach (var wall in walls)
         {
             wall.GetComponent<Rigidbody>().isKinematic = true;
             wall.GetComponent<Rigidbody>().detectCollisions = false;
         }
-
         foreach (var floor in floors)
         {
             floor.GetComponent<Rigidbody>().isKinematic = true;
             floor.GetComponent<Rigidbody>().detectCollisions = false;
         }
-
         foreach (var ball in balls)
         {
             ball.GetComponent<Rigidbody>().isKinematic = true;
             ball.GetComponent<Rigidbody>().detectCollisions = false;
+        }
+        foreach (var item in items)
+        {
+            item.GetComponent<Rigidbody>().isKinematic = true;
+            item.GetComponent<Rigidbody>().detectCollisions = false;
         }
     }
 
@@ -187,7 +226,7 @@ public class ControllMove : NetworkBehaviour
             alreadyReady = true;
         }
     }
-   
+
     // Update is called once per frame
     void Update()
     {
@@ -273,5 +312,4 @@ public class ControllMove : NetworkBehaviour
             }
         }
     }
-   
 }

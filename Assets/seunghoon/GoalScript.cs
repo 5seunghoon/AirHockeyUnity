@@ -36,7 +36,7 @@ public class GoalScript : MonoBehaviour
                 }
 
                 var jsonStr = "{\"player\":\"" + getScorePlayer +
-                              "\",\"score\":\"" + BallScript.scorePoint + "\"}";
+                              "\",\"scorePoint\":\"" + BallScript.scorePoint + "\"}";
                 ControllMove.socket.EmitJson("scoreUp", jsonStr);
 
                 GameObject o;

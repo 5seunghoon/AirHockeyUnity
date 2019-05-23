@@ -61,6 +61,7 @@
     <Compile Include="Assets\__Sample\Client\Src\Connect.cs" />
     <Compile Include="Assets\__Sample\Client\Src\Events.cs" />
     <Compile Include="Assets\__Sample\Client\Src\Namespace.cs" />
+    <Compile Include="Assets\Gems Ultimate Pack\Scripts\AnimationScript.cs" />
     <Compile Include="Assets\LeapMotion\Core\Examples\Example Assets\InertiaPostProcessProvider.cs" />
     <Compile Include="Assets\LeapMotion\Core\Examples\Example Assets\ProjectionPostProcessProvider.cs" />
     <Compile Include="Assets\LeapMotion\Core\Plugins\LeapCSharp\Arm.cs" />
@@ -254,11 +255,13 @@
     <Compile Include="Assets\seunghoon\BallPositionModel.cs" />
     <Compile Include="Assets\seunghoon\BallScript.cs" />
     <Compile Include="Assets\seunghoon\ControllMove.cs" />
+    <Compile Include="Assets\seunghoon\GameItemScript.cs" />
     <Compile Include="Assets\seunghoon\GameTimeModel.cs" />
     <Compile Include="Assets\seunghoon\GoalScript.cs" />
     <Compile Include="Assets\seunghoon\HandPositionModel.cs" />
     <Compile Include="Assets\seunghoon\IPManager.cs" />
     <Compile Include="Assets\seunghoon\IpModel.cs" />
+    <Compile Include="Assets\seunghoon\ItemModel.cs" />
     <Compile Include="Assets\seunghoon\MainCamera.cs" />
     <Compile Include="Assets\seunghoon\NetworkCustomManager.cs" />
     <Compile Include="Assets\seunghoon\Player2Camera.cs" />

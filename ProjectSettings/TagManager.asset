@@ -12,6 +12,7 @@ TagManager:
   - STICK1
   - STICK2
   - LEAP_CONTROLLER
+  - ITEM
   layers:
   - Default
   - TransparentFX

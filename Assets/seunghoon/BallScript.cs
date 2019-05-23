@@ -22,6 +22,11 @@ public class BallScript : MonoBehaviour
     private static float maxVelocity = 0.7f;
 
     public static String whoPush = "NONE";
+
+    public Material singleScoreMaterial;
+    public Material doubleScoreMaterial;
+    
+   
     // Start is called before the first frame update
     void Start()
     {
@@ -107,6 +112,18 @@ public class BallScript : MonoBehaviour
     }
 
 
+    public void changeToDoubleScoreBall()
+    {
+        scorePoint = 2;
+        GetComponent<MeshRenderer>().material = doubleScoreMaterial;
+    }
+
+    public void changeToSingleScoreBall()
+    {
+        scorePoint = 1;
+        GetComponent<MeshRenderer>().material = singleScoreMaterial;
+    }
+    
     public void BallAddForce(Vector3 inNormal, Vector3 stickForceVector)
     {
         inNormal.x += stickForceVector.x;
