@@ -270,6 +270,7 @@
     <Compile Include="Assets\seunghoon\Stick1Script.cs" />
     <Compile Include="Assets\seunghoon\Stick2Script.cs" />
     <Compile Include="Assets\seunghoon\StickScript.cs" />
+    <Compile Include="Assets\seunghoon\WallScript.cs" />
     <None Include="Assets\LeapMotion\Core\Resources\LeapCG.cginc" />
     <None Include="Assets\LeapMotion\Core\README_BEFORE_UPDATING.txt" />
     <None Include="Assets\LeapMotion\Core\readme.txt" />

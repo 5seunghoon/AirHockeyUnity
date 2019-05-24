@@ -44,11 +44,12 @@ public class GoalScript : MonoBehaviour
 
                 if (BallScript.whoPush == "P2")
                 {
-                    o.transform.position = BallScript.player2ResetVector3;
+                    o.transform.position = new Vector3(BallScript.player2ResetX, o.transform.position.y, BallScript.player2ResetZ);
                 }
                 else
                 {
-                    o.transform.position = BallScript.player1ResetVector3;
+                    o.transform.position = new Vector3(BallScript.player1ResetX, o.transform.position.y,
+                        BallScript.player1ResetZ);
                 }
             }
         }

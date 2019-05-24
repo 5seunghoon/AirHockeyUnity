@@ -20,15 +20,18 @@ var timeSst = "";
 var item_timer = 9999;
 var item_on = false;
 
-const itemInterval = 10;
-const numOfItem = 1;
+const itemInterval = 3;
+const numOfItem = 2;
 
 let hostIp = "";
 let clientIp = "";
 
-let plusScore;
+const plusScoreNormal = 1;
+
+const plusScoreDouble = 2;
 let plusScoreActivation = false;
 let plusScoreTime;
+let plusScorePlayer = "";
 const plusScoreInterval = 20; //20초
 
 
@@ -62,7 +65,6 @@ var timerSetting = () => {
     if(plusScoreActivation) {
         if(timer > plusScoreTime + plusScoreInterval) {
             //20초가 지나면 효과 끝
-            plusScore = 1;
             plusScoreActivation = false;
             io.sockets.emit("endItemEmit",  {itemName:"DoubleScore"});
         }
@@ -72,7 +74,6 @@ var timerSetting = () => {
     if (timer >= (180 - 15)) {
         io.sockets.emit("feverTime");
         console.log("Fever time! U can get double score!")
-        plusScore = 2;
     }
 
     if (timer >= 180 || playing == false) {
@@ -96,10 +97,9 @@ var timerSetting = () => {
     }
     if (timer - item_timer >= 10) {
         io.sockets.emit("itemEnd");
-        plusScore = 1;
         item_on = false;
     }
-}
+};
 
 var onceTimer = null;
 
@@ -147,6 +147,7 @@ var hockey = (io) => {
             }
             //두명 레디 신호시 게임 시작
             if (ready[0] && ready[1] && !playing) {
+            //if (ready[0] && !playing) {
                 io.sockets.emit("gameStart", {hostIp: hostIp, clientIp: clientIp});
                 console.log("GAME START!");
                 playing = true;
@@ -155,7 +156,6 @@ var hockey = (io) => {
                 ready[0] = false;
                 ready[1] = false;
                 pCount = 0;
-                plusScore = 1;
 
                 //timer setting
                 onceTimer = setInterval(timerSetting, 1000);
@@ -180,10 +180,11 @@ var hockey = (io) => {
             console.log("eat item , item name : " + data.itemName);
             switch (data.itemName) {
                 case "DoubleScore":
-                    plusScore = 2;
                     plusScoreTime = timer;
                     plusScoreActivation = true;
-                    io.sockets.emit("eatItemEmit", {itemName:"DoubleScore"});
+                    plusScorePlayer = data.player;
+                    console.log("item player : " + data.player);
+                    io.sockets.emit("eatItemEmit", {itemName:"DoubleScore", player:plusScorePlayer});
                     break;
             }
         });
@@ -191,10 +192,20 @@ var hockey = (io) => {
         socket.on("scoreUp", (data) => {
             console.log("SCORE_UP data player : " + data.player);
             if (data.player === "P1") {
-                score[0] = score[0] + plusScore;
+                if(plusScoreActivation && plusScorePlayer === "P1") {
+                    console.log("player score up with item : P1");
+                    score[0] += plusScoreDouble;
+                } else {
+                    score[0] += plusScoreNormal;
+                }
             }
             if (data.player === "P2") {
-                score[1] = score[1] + plusScore;
+                if(plusScoreActivation && plusScorePlayer === "P2") {
+                    console.log("player score up with item : P2");
+                    score[1] += plusScoreDouble;
+                } else {
+                    score[1] += plusScoreNormal;
+                }
             }
             console.log("SCORE_UP data :  " + score[0] + ":" + score[1]);
 

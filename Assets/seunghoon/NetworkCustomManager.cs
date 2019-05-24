@@ -36,10 +36,6 @@ public class NetworkCustomManager : NetworkManager
     public override void OnClientConnect(NetworkConnection conn)
     {
         Debug.Log("OnClientConnect");
-        if (!ControllMove.alreadyReady && ControllMove.isConnect)
-        {
-            ControllMove.ReadyGame();
-        }
         base.OnClientConnect(conn);
     }
 }

@@ -30,7 +30,8 @@ public class ControllMove : NetworkBehaviour
 
     public IpModel ipModel;
 
-    public GameObject gameItem;
+    public GameObject doubleGameItem;
+    public GameObject goalBigGameItem;
 
     public Camera player1Camera;
     public Camera player2Camera;
@@ -44,9 +45,9 @@ public class ControllMove : NetworkBehaviour
     //private string url = "http://759eb21d.ngrok.io/";
     //private string url = "http://172.30.97.24:3000";
     private string url = "http://127.0.0.1:3000";
-    //private string url = "http://59.20.210.216:3000";
 
-    //private string url = "http://192.168.43.12:3000/";
+    //private string url = "http://59.20.210.216:3000";
+    //private string url = "http://192.168.43.173:3000/";
     public static Socket socket;
 
     public static String playerType = "P1";
@@ -55,8 +56,6 @@ public class ControllMove : NetworkBehaviour
 
     void Start()
     {
-        gameItem.SetActive(false);
-        
         socket = Socket.Connect(url);
         socket.On("connect", () =>
         {
@@ -113,17 +112,34 @@ public class ControllMove : NetworkBehaviour
         ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
         if (ItemModel.ParseStringToItemNameEnum(itemModel.itemName) == ItemNameEnum.DoubleScore)
         {
-            GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToDoubleScoreBall();
+            GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToDoubleScoreBall(itemModel.player);
         }
     }
 
     private void ItemCallback(String data)
     {
         if (playerType == "P2") return;
-        if (!gameItem.GetComponent<GameItemScript>().isAlive)
+
+        ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
+        GameItemScript gameItemScript = null;
+        
+        Debug.Log("item name : " + itemModel.itemName);
+        
+        switch (ItemModel.ParseStringToItemNameEnum(itemModel.itemName))
         {
-            ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
-            gameItem.GetComponent<GameItemScript>().RespawnItem(itemModel);
+            case ItemNameEnum.None:
+                break;
+            case ItemNameEnum.DoubleScore:
+                gameItemScript = doubleGameItem.GetComponent<GameItemScript>();
+                break;
+            case ItemNameEnum.BigGoal:
+                gameItemScript = goalBigGameItem.GetComponent<GameItemScript>();
+                break;
+        }
+        
+        if (gameItemScript != null)
+        {
+            if (!(gameItemScript.GetIsAliveItem())) gameItemScript.RespawnItem(itemModel);
         }
     }
 
@@ -191,16 +207,19 @@ public class ControllMove : NetworkBehaviour
             wall.GetComponent<Rigidbody>().isKinematic = true;
             wall.GetComponent<Rigidbody>().detectCollisions = false;
         }
+
         foreach (var floor in floors)
         {
             floor.GetComponent<Rigidbody>().isKinematic = true;
             floor.GetComponent<Rigidbody>().detectCollisions = false;
         }
+
         foreach (var ball in balls)
         {
             ball.GetComponent<Rigidbody>().isKinematic = true;
             ball.GetComponent<Rigidbody>().detectCollisions = false;
         }
+
         foreach (var item in items)
         {
             item.GetComponent<Rigidbody>().isKinematic = true;
@@ -212,7 +231,8 @@ public class ControllMove : NetworkBehaviour
     {
         GameObject ball = GameObject.FindWithTag("BALL");
         ball.GetComponent<Rigidbody>().velocity = Vector3.zero;
-        ball.transform.position = BallScript.player1ResetVector3;
+        ball.transform.position = new Vector3(BallScript.player1ResetX, ball.transform.position.y,
+            BallScript.player1ResetZ);
     }
 
     public static void ReadyGame()
@@ -231,7 +251,7 @@ public class ControllMove : NetworkBehaviour
     void Update()
     {
         // 스페이스 바 눌리면 레디 (1회만)
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && isConnect)
         {
             gameReadyText.text = "상대방을 기다리는 중..";
             ReadyGame();

@@ -6,10 +6,11 @@ namespace seunghoon
     public class ItemModel
     {
         public string itemName;
-
-        ItemModel(string itemName)
+        public string player;
+        ItemModel(string itemName, string player)
         {
             this.itemName = itemName;
+            this.player = player;
         }
 
         public static string parseItemToString(ItemNameEnum itemNameEnum)

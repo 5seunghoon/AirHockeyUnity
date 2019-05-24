@@ -10,6 +10,11 @@ public class BallScript : MonoBehaviour
 {
     public static Vector3 player1ResetVector3 = new Vector3(0f, yPosDefault, 0.82f);
     public static Vector3 player2ResetVector3 = new Vector3(0f, yPosDefault, 1.139f);
+
+    public static float player1ResetX = 0f;
+    public static float player1ResetZ = 0.82f;
+    public static float player2ResetX = 0f;
+    public static float player2ResetZ = 1.139f;
     
     private DateTime prevTime = DateTime.Now;
 
@@ -24,7 +29,8 @@ public class BallScript : MonoBehaviour
     public static String whoPush = "NONE";
 
     public Material singleScoreMaterial;
-    public Material doubleScoreMaterial;
+    public Material player1StickMaterial;
+    public Material player2StickMaterial;
     
    
     // Start is called before the first frame update
@@ -92,9 +98,9 @@ public class BallScript : MonoBehaviour
         {
             Debug.Log("PUSH");
             Debug.Log("a : " + rigidbody.velocity.normalized);
-            Debug.Log("b : " + rigidbody.velocity.normalized * (rigidbody.velocity.magnitude * 20f + 1f));
+            Debug.Log("b : " + rigidbody.velocity.normalized * (rigidbody.velocity.magnitude * 2000f + 1f));
             Debug.Log("c : " + rigidbody.velocity.magnitude);
-            rigidbody.AddForce(rigidbody.velocity.normalized * (rigidbody.velocity.magnitude * 10f + 1f) , ForceMode.Impulse);
+            rigidbody.AddForce(rigidbody.velocity.normalized * (rigidbody.velocity.magnitude * 2000f + 1f) , ForceMode.Impulse);
         }
         else if (rigidbody.velocity.magnitude > maxVelocity)
         {
@@ -103,19 +109,14 @@ public class BallScript : MonoBehaviour
             rigidbody.velocity = new Vector3(velocity.x * 0.7f, velocity.x * 0.7f, velocity.x * 0.7f);
         }
         
-        //y좌표 고정
-        var position = transform.position;
-        position = new Vector3(position.x, yPosDefault, position.z);
-        transform.position = position;
         
-        transform.rotation = Quaternion.identity;
     }
 
 
-    public void changeToDoubleScoreBall()
+    public void changeToDoubleScoreBall(string player)
     {
         scorePoint = 2;
-        GetComponent<MeshRenderer>().material = doubleScoreMaterial;
+        GetComponent<MeshRenderer>().material = (player == "P1") ? player1StickMaterial : player2StickMaterial;
     }
 
     public void changeToSingleScoreBall()
@@ -124,13 +125,10 @@ public class BallScript : MonoBehaviour
         GetComponent<MeshRenderer>().material = singleScoreMaterial;
     }
     
-    public void BallAddForce(Vector3 inNormal, Vector3 stickForceVector)
+    public void BallAddForce(Vector3 inNormal)
     {
-        inNormal.x += stickForceVector.x;
-        inNormal.z += stickForceVector.z;
-        var rigid = GetComponent<Rigidbody>();
-        rigid.velocity = Vector3.zero;
-        rigid.angularVelocity = Vector3.zero;
+        inNormal.x *= 1.3f;
+        inNormal.z *= 1.3f;
         GetComponent<Rigidbody>().AddForce(inNormal, ForceMode.VelocityChange);
     }
 }
