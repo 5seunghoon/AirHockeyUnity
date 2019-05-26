@@ -31,7 +31,7 @@ public class ControllMove : NetworkBehaviour
     public IpModel ipModel;
 
     public GameObject doubleGameItem;
-    public GameObject goalBigGameItem;
+    public GameObject bigGoalGameItem;
 
     public Camera player1Camera;
     public Camera player2Camera;
@@ -98,22 +98,53 @@ public class ControllMove : NetworkBehaviour
         }
     }
 
-    private void ItemEndCallback(String data)
-    {
-        ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
-        if (ItemModel.ParseStringToItemNameEnum(itemModel.itemName) == ItemNameEnum.DoubleScore)
-        {
-            GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToSingleScoreBall();
-        }
-    }
-
     private void ItemEatCallback(String data)
     {
         ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
-        if (ItemModel.ParseStringToItemNameEnum(itemModel.itemName) == ItemNameEnum.DoubleScore)
+        
+        switch (ItemModel.ParseStringToItemNameEnum(itemModel.itemName))
         {
-            GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToDoubleScoreBall(itemModel.player);
+            case ItemNameEnum.None:
+                break;
+            case ItemNameEnum.DoubleScore:
+                GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToDoubleScoreBall(itemModel.player);
+                break;
+            case ItemNameEnum.BigGoal:
+                if (itemModel.player == "P1")
+                {
+                    GameObject.FindWithTag("P1GOAL").GetComponent<GoalScript>().BigGoalModeStart(itemModel.player);
+                }
+                else
+                {
+                    GameObject.FindWithTag("P2GOAL").GetComponent<GoalScript>().BigGoalModeStart(itemModel.player);
+                }
+                break;
         }
+    }
+    
+    private void ItemEndCallback(String data)
+    {
+        ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
+
+        switch (ItemModel.ParseStringToItemNameEnum(itemModel.itemName))
+        {
+            case ItemNameEnum.None:
+                break;
+            case ItemNameEnum.DoubleScore:
+                GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToSingleScoreBall();
+                break;
+            case ItemNameEnum.BigGoal:
+                if (itemModel.player == "P1")
+                {
+                    GameObject.FindWithTag("P1GOAL").GetComponent<GoalScript>().BigGoalModeEnd(itemModel.player);
+                }
+                else
+                {
+                    GameObject.FindWithTag("P2GOAL").GetComponent<GoalScript>().BigGoalModeEnd(itemModel.player);
+                }
+                break;
+        }
+        
     }
 
     private void ItemCallback(String data)
@@ -133,7 +164,7 @@ public class ControllMove : NetworkBehaviour
                 gameItemScript = doubleGameItem.GetComponent<GameItemScript>();
                 break;
             case ItemNameEnum.BigGoal:
-                gameItemScript = goalBigGameItem.GetComponent<GameItemScript>();
+                gameItemScript = bigGoalGameItem.GetComponent<GameItemScript>();
                 break;
         }
         

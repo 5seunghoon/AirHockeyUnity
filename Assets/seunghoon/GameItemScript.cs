@@ -31,6 +31,7 @@ public class GameItemScript : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log("On Trigger Enter");
         if (_isAliveItem && other.CompareTag("BALL"))
         {
             _isAliveItem = false;

@@ -9,6 +9,10 @@ public class GoalScript : MonoBehaviour
 
     private DateTime prevTime = DateTime.Now;
 
+    private const float X_SCALE_DEFAULT = 0.25f;
+
+    private const float X_SCALE_BIG = 0.425f;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -52,6 +56,28 @@ public class GoalScript : MonoBehaviour
                         BallScript.player1ResetZ);
                 }
             }
+        }
+    }
+
+    public void BigGoalModeStart(string player)
+    {
+        Debug.Log("big goal mode start player : " + player);
+        if ((player == "P1" && CompareTag("P1GOAL")) || 
+            (player == "P2" && CompareTag("P2GOAL")))
+        {
+            var localScale = transform.localScale;
+            transform.localScale = new Vector3(X_SCALE_BIG, localScale.y, localScale.z);
+        }
+    }
+
+    public void BigGoalModeEnd(string player)
+    {
+        Debug.Log("big goal mode end player : " + player);
+        if ((player == "P1" && CompareTag("P1GOAL")) || 
+            (player == "P2" && CompareTag("P2GOAL")))
+        {
+            var localScale = transform.localScale;
+            transform.localScale = new Vector3(X_SCALE_DEFAULT, localScale.y, localScale.z);
         }
     }
 }

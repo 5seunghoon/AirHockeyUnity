@@ -97,9 +97,6 @@ public class BallScript : MonoBehaviour
         if (rigidbody.velocity.magnitude > 0.06f && rigidbody.velocity.magnitude < 0.18f)
         {
             Debug.Log("PUSH");
-            Debug.Log("a : " + rigidbody.velocity.normalized);
-            Debug.Log("b : " + rigidbody.velocity.normalized * (rigidbody.velocity.magnitude * 2000f + 1f));
-            Debug.Log("c : " + rigidbody.velocity.magnitude);
             rigidbody.AddForce(rigidbody.velocity.normalized * (rigidbody.velocity.magnitude * 2000f + 1f) , ForceMode.Impulse);
         }
         else if (rigidbody.velocity.magnitude > maxVelocity)
