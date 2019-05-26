@@ -13,7 +13,7 @@ namespace seunghoon
             this.player = player;
         }
 
-        public static string parseItemToString(ItemNameEnum itemNameEnum)
+        public static string ParseItemToString(ItemNameEnum itemNameEnum)
         {
             switch (itemNameEnum)
             {
@@ -23,6 +23,8 @@ namespace seunghoon
                     return "BigGoal";
                 case ItemNameEnum.SmallGoal:
                     return "SmallGoal";
+                case ItemNameEnum.PenaltyKick:
+                    return "PenaltyKick";
                 default:
                     return "";
             }
@@ -38,6 +40,8 @@ namespace seunghoon
                     return ItemNameEnum.BigGoal;
                 case "SmallGoal" :
                     return ItemNameEnum.SmallGoal;
+                case "PenaltyKick":
+                    return ItemNameEnum.PenaltyKick;
                 default:
                     return ItemNameEnum.None;
             }
@@ -46,6 +50,6 @@ namespace seunghoon
 
     public enum ItemNameEnum
     {
-        None, DoubleScore, BigGoal, SmallGoal
+        None, DoubleScore, BigGoal, SmallGoal, PenaltyKick
     }
 }

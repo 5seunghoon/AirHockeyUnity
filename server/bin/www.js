@@ -20,8 +20,11 @@ var timeSst = "";
 var item_timer = 9999;
 var item_on = false;
 
+
+let itemTable = [];
+let itemTableEndIndex = 0;
+
 const itemInterval = 3;
-const numOfItem = 3;
 
 let hostIp = "";
 let clientIp = "";
@@ -44,6 +47,31 @@ const goalItemInterval = 15;
 let player1GoalItemTime;
 let player2GoalItemTime;
 
+let penaltyKickPlayer = "";
+
+function makeItemTable() {
+    //아이템 확률 등이 적혀있는 list를 초기화
+    addItemRandomTable(22, "DoubleScore");
+    addItemRandomTable(18, "BigGoal");
+    addItemRandomTable(18, "SmallGoal");
+    addItemRandomTable(12, "PenaltyKick");
+}
+
+function addItemRandomTable(percentage, itemName) {
+    //아이템 확률을 구해서 jsonList에 넣음
+    let itemTableJson = {
+        percentageStart: 0,
+        percentageEnd: 100,
+        itemName: "ITEMNAME"
+    };
+    itemTableJson.percentageStart = itemTableEndIndex;
+    itemTableEndIndex += percentage;
+    itemTableJson.percentageEnd = itemTableEndIndex;
+    itemTableJson.itemName = itemName;
+    itemTable.push(itemTableJson);
+}
+
+
 var timerSetting = () => {
     timer++;
     toTimeString(timer);
@@ -51,22 +79,20 @@ var timerSetting = () => {
     io.sockets.emit("timerEmit", {timeMst: timeMst, timeSst: timeSst});
 
     if (timer % itemInterval === 0) {
-        let randomItem = Math.floor(Math.random() * numOfItem);
-        console.log("random item num : " + randomItem);
+        let randomItemNum = Math.floor(Math.random() * 100);
+        console.log("random item num : " + randomItemNum);
         let itemJson = {itemName: ""};
-        switch (randomItem) {
-            case 0:
-                itemJson.itemName = "DoubleScore";
-                break;
-            case 1:
-                itemJson.itemName = "BigGoal";
-                break;
-            case 2:
-                itemJson.itemName = "SmallGoal";
-                break;
-        }
 
-        io.sockets.emit("itemEmit", itemJson);
+        itemTable.some(itemPercentageJson => {
+            let isValidPercentage = randomItemNum >= itemPercentageJson.percentageStart && randomItemNum < itemPercentageJson.percentageEnd;
+            if (isValidPercentage) {
+                itemJson.itemName = itemPercentageJson.itemName;
+                console.log("item " + itemPercentageJson.itemName + " is emit");
+                io.sockets.emit("itemEmit", itemJson);
+                return isValidPercentage;
+            }
+        });
+
     }
 
     // 두배 점수 아이템 효과
@@ -86,23 +112,23 @@ var timerSetting = () => {
             io.sockets.emit("endItemEmit", {itemName: "BigGoal", player: "P1"});
         }
     }
-    if(player1SmallGoalActivation) {
-        if(timer > player1GoalItemTime + goalItemInterval) {
+    if (player1SmallGoalActivation) {
+        if (timer > player1GoalItemTime + goalItemInterval) {
             player1SmallGoalActivation = false;
             console.log("endItem player1 small goal");
             io.sockets.emit("endItemEmit", {itemName: "SmallGoal", player: "P1"});
         }
     }
 
-    if(player2BigGoalActivation) {
-        if(timer > player2GoalItemTime + goalItemInterval) {
+    if (player2BigGoalActivation) {
+        if (timer > player2GoalItemTime + goalItemInterval) {
             player2BigGoalActivation = false;
             console.log("endItem player2 big goal");
             io.sockets.emit("endItemEmit", {itemName: "BigGoal", player: "P2"});
         }
     }
-    if(player2SmallGoalActivation) {
-        if(timer > player2GoalItemTime + goalItemInterval) {
+    if (player2SmallGoalActivation) {
+        if (timer > player2GoalItemTime + goalItemInterval) {
             player2SmallGoalActivation = false;
             console.log("endItem player2 small goal");
             io.sockets.emit("endItemEmit", {itemName: "SmallGoal", player: "P2"});
@@ -229,7 +255,7 @@ var hockey = (io) => {
                 case "BigGoal":
                     bigGoalPlayer = data.player;
                     console.log("BigGoal, item player : " + data.player);
-                    if(bigGoalPlayer === "P1") {
+                    if (bigGoalPlayer === "P1") {
                         player1GoalItemTime = timer;
                         player1BigGoalActivation = true;
                     } else {
@@ -241,7 +267,7 @@ var hockey = (io) => {
                 case "SmallGoal":
                     smallGoalPlayer = data.player;
                     console.log("SmallGoal, item player : " + data.player);
-                    if(smallGoalPlayer === "P1") {
+                    if (smallGoalPlayer === "P1") {
                         player1GoalItemTime = timer;
                         player1SmallGoalActivation = true;
                     } else {
@@ -249,6 +275,11 @@ var hockey = (io) => {
                         player2SmallGoalActivation = true;
                     }
                     io.sockets.emit("eatItemEmit", {itemName: "SmallGoal", player: smallGoalPlayer});
+                    break;
+                case "PenaltyKick":
+                    penaltyKickPlayer = data.player;
+                    console.log("PenaltyKick, item player: " + penaltyKickPlayer);
+                    io.sockets.emit("eatItemEmit", {itemName: "PenaltyKick", player: penaltyKickPlayer});
                     break;
             }
         });
@@ -308,6 +339,12 @@ var hockey = (io) => {
                 });*/
     });
 };
+
+makeItemTable();
+
+itemTable.forEach(itemTableJson => {
+    console.dir(itemTableJson);
+});
 
 hockey(io);
 

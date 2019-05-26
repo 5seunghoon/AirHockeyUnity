@@ -38,7 +38,7 @@ public class GameItemScript : MonoBehaviour
             transform.position = removePosition;
             //서버로 Item먹었다고 Emit
             string eatItemEmitJson = "{" +
-                                     "\"itemName\": \"" + ItemModel.parseItemToString(itemName) + "\"," +
+                                     "\"itemName\": \"" + ItemModel.ParseItemToString(itemName) + "\"," +
                                      " \"player\":\"" + BallScript.whoPush + "\"" +
                                      "}";
             ControllMove.socket.EmitJson("eatItem", eatItemEmitJson);

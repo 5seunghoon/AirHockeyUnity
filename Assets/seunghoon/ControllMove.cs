@@ -33,7 +33,10 @@ public class ControllMove : NetworkBehaviour
     public GameObject doubleGameItem;
     public GameObject bigGoalGameItem;
     public GameObject smallGoalGameItem;
+    public GameObject penaltyKickGameItem;
 
+    public GameObject hockeyBall;
+    
     public Camera player1Camera;
     public Camera player2Camera;
 
@@ -122,6 +125,9 @@ public class ControllMove : NetworkBehaviour
                 else smallGoal = GameObject.FindWithTag("P1GOAL").GetComponent<GoalScript>();
                 smallGoal.SmallGoalModeStart(itemModel.player);
                 break;
+            case ItemNameEnum.PenaltyKick:
+                hockeyBall.GetComponent<BallScript>().PenaltyKickMode(itemModel.player);
+                break;
         }
     }
     
@@ -148,6 +154,8 @@ public class ControllMove : NetworkBehaviour
                 else smallGoal = GameObject.FindWithTag("P1GOAL").GetComponent<GoalScript>();
                 smallGoal.SmallGoalModeEnd(itemModel.player);
                 break;
+            case ItemNameEnum.PenaltyKick:
+                break;
         }
         
     }
@@ -173,6 +181,9 @@ public class ControllMove : NetworkBehaviour
                 break;
             case ItemNameEnum.SmallGoal:
                 gameItemScript = smallGoalGameItem.GetComponent<GameItemScript>();
+                break;
+            case ItemNameEnum.PenaltyKick:
+                gameItemScript = penaltyKickGameItem.GetComponent<GameItemScript>();
                 break;
         }
         
