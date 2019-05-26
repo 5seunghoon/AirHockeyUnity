@@ -21,6 +21,8 @@ namespace seunghoon
                     return "DoubleScore";
                 case ItemNameEnum.BigGoal:
                     return "BigGoal";
+                case ItemNameEnum.SmallGoal:
+                    return "SmallGoal";
                 default:
                     return "";
             }
@@ -34,6 +36,8 @@ namespace seunghoon
                     return ItemNameEnum.DoubleScore;
                 case "BigGoal" :
                     return ItemNameEnum.BigGoal;
+                case "SmallGoal" :
+                    return ItemNameEnum.SmallGoal;
                 default:
                     return ItemNameEnum.None;
             }
@@ -42,6 +46,6 @@ namespace seunghoon
 
     public enum ItemNameEnum
     {
-        None, DoubleScore, BigGoal
+        None, DoubleScore, BigGoal, SmallGoal
     }
 }

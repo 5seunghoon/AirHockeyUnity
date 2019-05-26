@@ -21,7 +21,7 @@ var item_timer = 9999;
 var item_on = false;
 
 const itemInterval = 3;
-const numOfItem = 2;
+const numOfItem = 3;
 
 let hostIp = "";
 let clientIp = "";
@@ -32,13 +32,17 @@ const plusScoreDouble = 2;
 let plusScoreActivation = false;
 let plusScoreTime;
 let plusScorePlayer = "";
-const plusScoreInterval = 15; //20초
+const plusScoreInterval = 15; //15초
 
-let bigGoalActivation = false;
+let player1BigGoalActivation = false;
+let player2BigGoalActivation = false;
+let player1SmallGoalActivation = false;
+let player2SmallGoalActivation = false;
 let bigGoalPlayer = "";
-let bigGoalTime;
-const bigGoalInterval = 15; // 20초
-
+let smallGoalPlayer = "";
+const goalItemInterval = 15;
+let player1GoalItemTime;
+let player2GoalItemTime;
 
 var timerSetting = () => {
     timer++;
@@ -58,8 +62,7 @@ var timerSetting = () => {
                 itemJson.itemName = "BigGoal";
                 break;
             case 2:
-                break;
-            case 3:
+                itemJson.itemName = "SmallGoal";
                 break;
         }
 
@@ -76,13 +79,36 @@ var timerSetting = () => {
         }
     }
 
-    if (bigGoalActivation) {
-        if (timer > bigGoalTime + bigGoalInterval) {
-            bigGoalActivation = false;
-            console.log("endItem big goal");
-            io.sockets.emit("endItemEmit", {itemName: "BigGoal", player: bigGoalPlayer});
+    if (player1BigGoalActivation) {
+        if (timer > player1GoalItemTime + goalItemInterval) {
+            player1BigGoalActivation = false;
+            console.log("endItem player1 big goal");
+            io.sockets.emit("endItemEmit", {itemName: "BigGoal", player: "P1"});
         }
     }
+    if(player1SmallGoalActivation) {
+        if(timer > player1GoalItemTime + goalItemInterval) {
+            player1SmallGoalActivation = false;
+            console.log("endItem player1 small goal");
+            io.sockets.emit("endItemEmit", {itemName: "SmallGoal", player: "P1"});
+        }
+    }
+
+    if(player2BigGoalActivation) {
+        if(timer > player2GoalItemTime + goalItemInterval) {
+            player2BigGoalActivation = false;
+            console.log("endItem player2 big goal");
+            io.sockets.emit("endItemEmit", {itemName: "BigGoal", player: "P2"});
+        }
+    }
+    if(player2SmallGoalActivation) {
+        if(timer > player2GoalItemTime + goalItemInterval) {
+            player2SmallGoalActivation = false;
+            console.log("endItem player2 small goal");
+            io.sockets.emit("endItemEmit", {itemName: "SmallGoal", player: "P2"});
+        }
+    }
+
 
     //Fever time
     if (timer >= (180 - 15)) {
@@ -201,11 +227,28 @@ var hockey = (io) => {
                     io.sockets.emit("eatItemEmit", {itemName: "DoubleScore", player: plusScorePlayer});
                     break;
                 case "BigGoal":
-                    bigGoalTime = timer;
-                    bigGoalActivation = true;
                     bigGoalPlayer = data.player;
                     console.log("BigGoal, item player : " + data.player);
+                    if(bigGoalPlayer === "P1") {
+                        player1GoalItemTime = timer;
+                        player1BigGoalActivation = true;
+                    } else {
+                        player2GoalItemTime = timer;
+                        player2BigGoalActivation = true;
+                    }
                     io.sockets.emit("eatItemEmit", {itemName: "BigGoal", player: bigGoalPlayer});
+                    break;
+                case "SmallGoal":
+                    smallGoalPlayer = data.player;
+                    console.log("SmallGoal, item player : " + data.player);
+                    if(smallGoalPlayer === "P1") {
+                        player1GoalItemTime = timer;
+                        player1SmallGoalActivation = true;
+                    } else {
+                        player2GoalItemTime = timer;
+                        player2SmallGoalActivation = true;
+                    }
+                    io.sockets.emit("eatItemEmit", {itemName: "SmallGoal", player: smallGoalPlayer});
                     break;
             }
         });

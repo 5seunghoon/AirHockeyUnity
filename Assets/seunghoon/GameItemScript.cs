@@ -48,8 +48,8 @@ public class GameItemScript : MonoBehaviour
     public void RespawnItem(ItemModel itemModel)
     {
         _isAliveItem = true;
-        float xRandom = Random.Range(-0.14f, 0.17f);
-        float zRandom = Random.Range(0.91f, 1.07f);
+        float xRandom = Random.Range(-16f, 19f) * 0.01f;
+        float zRandom = Random.Range(87f, 108f) * 0.01f;
         gameObject.transform.position = new Vector3(xRandom, aliveYPosition, zRandom);
     }
 

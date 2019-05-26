@@ -32,6 +32,7 @@ public class ControllMove : NetworkBehaviour
 
     public GameObject doubleGameItem;
     public GameObject bigGoalGameItem;
+    public GameObject smallGoalGameItem;
 
     public Camera player1Camera;
     public Camera player2Camera;
@@ -110,14 +111,16 @@ public class ControllMove : NetworkBehaviour
                 GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToDoubleScoreBall(itemModel.player);
                 break;
             case ItemNameEnum.BigGoal:
-                if (itemModel.player == "P1")
-                {
-                    GameObject.FindWithTag("P1GOAL").GetComponent<GoalScript>().BigGoalModeStart(itemModel.player);
-                }
-                else
-                {
-                    GameObject.FindWithTag("P2GOAL").GetComponent<GoalScript>().BigGoalModeStart(itemModel.player);
-                }
+                GoalScript bigGoal = null;
+                if (itemModel.player == "P1") bigGoal = GameObject.FindWithTag("P1GOAL").GetComponent<GoalScript>();
+                else bigGoal = GameObject.FindWithTag("P2GOAL").GetComponent<GoalScript>();
+                bigGoal.BigGoalModeStart(itemModel.player);
+                break;
+            case ItemNameEnum.SmallGoal:
+                GoalScript smallGoal = null;
+                if (itemModel.player == "P1") smallGoal = GameObject.FindWithTag("P2GOAL").GetComponent<GoalScript>();
+                else smallGoal = GameObject.FindWithTag("P1GOAL").GetComponent<GoalScript>();
+                smallGoal.SmallGoalModeStart(itemModel.player);
                 break;
         }
     }
@@ -134,14 +137,16 @@ public class ControllMove : NetworkBehaviour
                 GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToSingleScoreBall();
                 break;
             case ItemNameEnum.BigGoal:
-                if (itemModel.player == "P1")
-                {
-                    GameObject.FindWithTag("P1GOAL").GetComponent<GoalScript>().BigGoalModeEnd(itemModel.player);
-                }
-                else
-                {
-                    GameObject.FindWithTag("P2GOAL").GetComponent<GoalScript>().BigGoalModeEnd(itemModel.player);
-                }
+                GoalScript bigGoal = null;
+                if (itemModel.player == "P1") bigGoal = GameObject.FindWithTag("P1GOAL").GetComponent<GoalScript>();
+                else bigGoal = GameObject.FindWithTag("P2GOAL").GetComponent<GoalScript>();
+                bigGoal.BigGoalModeEnd(itemModel.player);
+                break;
+            case ItemNameEnum.SmallGoal:
+                GoalScript smallGoal = null;
+                if (itemModel.player == "P1") smallGoal = GameObject.FindWithTag("P2GOAL").GetComponent<GoalScript>();
+                else smallGoal = GameObject.FindWithTag("P1GOAL").GetComponent<GoalScript>();
+                smallGoal.SmallGoalModeEnd(itemModel.player);
                 break;
         }
         
@@ -165,6 +170,9 @@ public class ControllMove : NetworkBehaviour
                 break;
             case ItemNameEnum.BigGoal:
                 gameItemScript = bigGoalGameItem.GetComponent<GameItemScript>();
+                break;
+            case ItemNameEnum.SmallGoal:
+                gameItemScript = smallGoalGameItem.GetComponent<GameItemScript>();
                 break;
         }
         

@@ -6,13 +6,12 @@ using UnityEngine;
 
 public class GoalScript : MonoBehaviour
 {
-
     private DateTime prevTime = DateTime.Now;
 
     private const float X_SCALE_DEFAULT = 0.25f;
-
     private const float X_SCALE_BIG = 0.425f;
-    
+    private const float X_SCALE_SMALL = 0.12f;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -48,7 +47,8 @@ public class GoalScript : MonoBehaviour
 
                 if (BallScript.whoPush == "P2")
                 {
-                    o.transform.position = new Vector3(BallScript.player2ResetX, o.transform.position.y, BallScript.player2ResetZ);
+                    o.transform.position = new Vector3(BallScript.player2ResetX, o.transform.position.y,
+                        BallScript.player2ResetZ);
                 }
                 else
                 {
@@ -62,22 +62,28 @@ public class GoalScript : MonoBehaviour
     public void BigGoalModeStart(string player)
     {
         Debug.Log("big goal mode start player : " + player);
-        if ((player == "P1" && CompareTag("P1GOAL")) || 
-            (player == "P2" && CompareTag("P2GOAL")))
-        {
-            var localScale = transform.localScale;
-            transform.localScale = new Vector3(X_SCALE_BIG, localScale.y, localScale.z);
-        }
+        var localScale = transform.localScale;
+        transform.localScale = new Vector3(X_SCALE_BIG, localScale.y, localScale.z);
     }
 
     public void BigGoalModeEnd(string player)
     {
         Debug.Log("big goal mode end player : " + player);
-        if ((player == "P1" && CompareTag("P1GOAL")) || 
-            (player == "P2" && CompareTag("P2GOAL")))
-        {
-            var localScale = transform.localScale;
-            transform.localScale = new Vector3(X_SCALE_DEFAULT, localScale.y, localScale.z);
-        }
+        var localScale = transform.localScale;
+        transform.localScale = new Vector3(X_SCALE_DEFAULT, localScale.y, localScale.z);
+    }
+
+    public void SmallGoalModeStart(string player)
+    {
+        Debug.Log("small goal mode start player : " + player);
+        var localScale = transform.localScale;
+        transform.localScale = new Vector3(X_SCALE_SMALL, localScale.y, localScale.z);
+    }
+
+    public void SmallGoalModeEnd(string player)
+    {
+        Debug.Log("small goal mode end player : " + player);
+        var localScale = transform.localScale;
+        transform.localScale = new Vector3(X_SCALE_DEFAULT, localScale.y, localScale.z);
     }
 }
