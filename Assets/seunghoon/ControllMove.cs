@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
+using System.Text;
 using UnityEngine;
 using Leap;
 using Leap.Unity;
@@ -9,6 +11,7 @@ using seunghoon;
 using socket.io;
 using UnityEngine.Networking;
 using UnityEngine.Networking.Match;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 
@@ -16,17 +19,16 @@ public class ControllMove : NetworkBehaviour
 {
     // socket.io for unity : https://github.com/nhnent/socket.io-client-unity3d/
 
-    Controller controller;
-    float HandPalmPitch;
-    float HandPalmYam;
-    float HandPalmRoll;
-    float HandWristRot;
+    private Controller _controller;
 
     public Text youScore;
-    public Text rivalScroe;
+    public Text rivalScore;
     public Text gameTime;
     public Text gameReadyText;
     public Image gameReadyTextBgImage;
+    public GameObject feverTimeText;
+    public GameObject gameOverText;
+    public GameObject winnerText;
 
     public IpModel ipModel;
 
@@ -36,51 +38,78 @@ public class ControllMove : NetworkBehaviour
     public GameObject penaltyKickGameItem;
 
     public GameObject hockeyBall;
-    
+
     public Camera player1Camera;
     public Camera player2Camera;
 
-    public static bool alreadyReady = false;
-    public static bool isConnect = false;
+    private static bool _alreadyReady = false;
+    private static bool _isConnect = false;
 
-    private DateTime stickPrevTime = DateTime.Now;
+    private string _url = "http://127.0.0.1:3000";
 
-    //private string url = "http://ec2-13-58-99-209.us-east-2.compute.amazonaws.com:3000/";
-    //private string url = "http://759eb21d.ngrok.io/";
-    //private string url = "http://172.30.97.24:3000";
-    private string url = "http://127.0.0.1:3000";
+    public static Socket WebSocket;
 
-    //private string url = "http://59.20.210.216:3000";
-    //private string url = "http://192.168.43.173:3000/";
-    public static Socket socket;
+    public static String PlayerType = "P1";
 
-    public static String playerType = "P1";
+    private static DateTime _pastTestDateTime;
 
-    private static DateTime pastTestDateTime;
+    IEnumerator ShowFlickering(GameObject flickeringObject)
+    {
+        int count = 0;
+        while (count < 3)
+        {
+            flickeringObject.SetActive(true);
+            yield return new WaitForSeconds(0.2f);
+            flickeringObject.SetActive(false);
+            yield return new WaitForSeconds(0.2f);
+            count++;
+        }
+
+        flickeringObject.SetActive(true);
+    }
 
     void Start()
     {
-        socket = Socket.Connect(url);
-        socket.On("connect", () =>
+        try
         {
-            isConnect = true;
-            gameReadyText.fontSize = 20;
-            gameReadyText.text = "준비하려면 스페이스바를 눌려주세요";
-        });
-        socket.On("userReadyOn", UserReadyOn);
-        socket.On("gameStart", GameStartOn);
-        socket.On("handPositionEmit", HandPositionCallback);
-        socket.On("scoreUpEmit", ScoreUpCallback);
-        socket.On("timerEmit", GameTimerCallback);
-        socket.On("itemEmit", ItemCallback);
-        socket.On("eatItemEmit", ItemEatCallback);
-        socket.On("endItemEmit", ItemEndCallback);
-        BallReset(); // 공 위치 초기화 
+            string path = System.IO.Path.Combine(Application.dataPath + "/server_url.txt");
+            Debug.Log("path : " + path);
 
-        gameReadyText.text = "서버와 연결하는 중...";
+            byte[] byteText = System.IO.File.ReadAllBytes(path);
+            string urlText = Encoding.Default.GetString(byteText);
+            _url = "http://" + urlText + "/";
+            Debug.Log("url text : " + urlText);
+            gameReadyText.text = "Connecting With Server...\n" + urlText;
+        }
+        catch (FileNotFoundException e)
+        {
+            Debug.Log("SERVER URL TEXT FILE NOT FOUND");
+            gameReadyText.fontSize = 18;
+            gameReadyText.text = "SERVER URL TEXT FILE NOT FOUND, please write server ip in \"build\\AirHockey_Data\\server_url.txt\"";
+        }
+        
+        WebSocket = Socket.Connect(_url);
+        WebSocket.On("connect", ConnectCallback);
+        WebSocket.On("userReadyOn", UserReadyCallback);
+        WebSocket.On("gameStart", GameStartCallback);
+        WebSocket.On("scoreUpEmit", ScoreUpCallback);
+        WebSocket.On("timerEmit", GameTimerCallback);
+        WebSocket.On("itemEmit", ItemCallback);
+        WebSocket.On("eatItemEmit", ItemEatCallback);
+        WebSocket.On("endItemEmit", ItemEndCallback);
+        WebSocket.On("feverTimeEmit", FeverTimeCallback);
+        WebSocket.On("gameEndEmit", GameEndCallback);
+        
+        BallReset(); // 공 위치 초기화 
     }
 
-    public void ShowPlayer1Camera()
+    private void ConnectCallback()
+    {
+        _isConnect = true;
+        gameReadyText.text = "Press Space Bar To Ready!";
+    }
+
+    private void ShowPlayer1Camera()
     {
         player2Camera.enabled = false;
         player1Camera.enabled = true;
@@ -92,26 +121,16 @@ public class ControllMove : NetworkBehaviour
         player2Camera.enabled = true;
     }
 
-    private void HandPositionCallback(String data)
-    {
-        if (playerType == "P1")
-        {
-            HandPositionModel handPositionModel = JsonUtility.FromJson<HandPositionModel>(data);
-            GameObject.FindGameObjectWithTag("STICK2").transform.position =
-                new Vector3(handPositionModel.x, handPositionModel.y, handPositionModel.z);
-        }
-    }
-
-    private void ItemEatCallback(String data)
+    private void ItemEatCallback(string data)
     {
         ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
-        
+
         switch (ItemModel.ParseStringToItemNameEnum(itemModel.itemName))
         {
             case ItemNameEnum.None:
                 break;
             case ItemNameEnum.DoubleScore:
-                GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToDoubleScoreBall(itemModel.player);
+                GameObject.FindWithTag("BALL").GetComponent<BallScript>().ChangeToDoubleScoreBall(itemModel.player);
                 break;
             case ItemNameEnum.BigGoal:
                 GoalScript bigGoal = null;
@@ -130,8 +149,8 @@ public class ControllMove : NetworkBehaviour
                 break;
         }
     }
-    
-    private void ItemEndCallback(String data)
+
+    private void ItemEndCallback(string data)
     {
         ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
 
@@ -140,7 +159,7 @@ public class ControllMove : NetworkBehaviour
             case ItemNameEnum.None:
                 break;
             case ItemNameEnum.DoubleScore:
-                GameObject.FindWithTag("BALL").GetComponent<BallScript>().changeToSingleScoreBall();
+                GameObject.FindWithTag("BALL").GetComponent<BallScript>().ChangeToSingleScoreBall();
                 break;
             case ItemNameEnum.BigGoal:
                 GoalScript bigGoal = null;
@@ -157,18 +176,17 @@ public class ControllMove : NetworkBehaviour
             case ItemNameEnum.PenaltyKick:
                 break;
         }
-        
     }
 
-    private void ItemCallback(String data)
+    private void ItemCallback(string data)
     {
-        if (playerType == "P2") return;
+        if (PlayerType == "P2") return;
 
         ItemModel itemModel = JsonUtility.FromJson<ItemModel>(data);
         GameItemScript gameItemScript = null;
-        
+
         Debug.Log("item name : " + itemModel.itemName);
-        
+
         switch (ItemModel.ParseStringToItemNameEnum(itemModel.itemName))
         {
             case ItemNameEnum.None:
@@ -186,60 +204,100 @@ public class ControllMove : NetworkBehaviour
                 gameItemScript = penaltyKickGameItem.GetComponent<GameItemScript>();
                 break;
         }
-        
+
         if (gameItemScript != null)
         {
             if (!(gameItemScript.GetIsAliveItem())) gameItemScript.RespawnItem(itemModel);
         }
     }
 
-    private void ScoreUpCallback(String data)
+    public void FeverTimeCallback(string data)
+    {
+        StartCoroutine(ShowFlickering(feverTimeText));
+    }
+
+    private void GameEndCallback(string data)
+    {
+        GameEndModel gameEndModel = JsonUtility.FromJson<GameEndModel>(data);
+
+        hockeyBall.SetActive(false);
+
+        ShowWinner(gameEndModel);
+    }
+
+    private void ShowWinner(GameEndModel gameEndModel)
+    {
+        gameOverText.SetActive(true);
+        Text winnerTextObj = winnerText.GetComponent<Text>();
+        if (gameEndModel.IsDraw())
+        {
+            winnerTextObj.text = "DRAW!";
+        }
+        else if ((gameEndModel.winner == "P1" && PlayerType == "P1") ||
+                 (gameEndModel.winner == "P2" && PlayerType == "P2"))
+        {
+            winnerTextObj.text = "YOU WIN!!!";
+        }
+        else
+        {
+            winnerTextObj.text = "YOU LOSE..";
+        }
+
+        StartCoroutine(ShowFlickering(winnerText));
+        StartCoroutine(ShowFlickering(gameOverText));
+    }
+
+    private void ScoreUpCallback(string data)
     {
         ScoreModel scoreModel = JsonUtility.FromJson<ScoreModel>(data);
-        if (playerType == "P1")
+        if (PlayerType == "P1")
         {
             youScore.text = scoreModel.p1Score;
-            rivalScroe.text = scoreModel.p2Score;
+            rivalScore.text = scoreModel.p2Score;
         }
         else
         {
             youScore.text = scoreModel.p2Score;
-            rivalScroe.text = scoreModel.p1Score;
+            rivalScore.text = scoreModel.p1Score;
         }
     }
 
-    private void GameTimerCallback(String data)
+    private void GameTimerCallback(string data)
     {
         GameTimeModel gameTimeModel = JsonUtility.FromJson<GameTimeModel>(data);
         gameTime.text = gameTimeModel.ToString();
     }
 
-    private void UserReadyOn(String data) // Player1, Player2 지정에 대한 대기
+    private void UserReadyCallback(string data) // Player1, Player2 지정에 대한 대기
     {
         PlayerModel playerModel = JsonUtility.FromJson<PlayerModel>(data);
-        playerType = playerModel.player;
-        Debug.Log("userReadyOn : " + playerType);
+        PlayerType = playerModel.player;
+        Debug.Log("userReadyOn : " + PlayerType);
 
-        if (playerType == "P1") NetworkCustomManager.StartHostCustom();
+        if (PlayerType == "P1") NetworkCustomManager.StartHostCustom();
     }
 
-    private void GameStartOn(String data) // 게임 시작 신호 대기
+    private void GameStartCallback(string data) // 게임 시작 신호 대기
     {
-        BallScript.isSendBallPosition = true;
         Debug.Log("game start");
-
+        
+        BallReset();
+        
         ipModel = JsonUtility.FromJson<IpModel>(data);
 
         gameReadyText.text = "";
         gameReadyTextBgImage.enabled = false;
 
-        if (playerType == "P2")
+        if (PlayerType == "P2")
         {
             NetworkCustomManager.StartClientCustom(ipModel.hostIp, 7777);
             Debug.Log("P2, Host ip : " + ipModel.hostIp);
             ShowPlayer2Camera();
             InvalidCollider(); // Player2일 경우 물리 계산 disable
-            //changeLeapControllerPosition();
+        }
+        else
+        {
+            ShowPlayer1Camera();
         }
     }
 
@@ -279,21 +337,20 @@ public class ControllMove : NetworkBehaviour
 
     private void BallReset()
     {
-        GameObject ball = GameObject.FindWithTag("BALL");
-        ball.GetComponent<Rigidbody>().velocity = Vector3.zero;
-        ball.transform.position = new Vector3(BallScript.player1ResetX, ball.transform.position.y,
-            BallScript.player1ResetZ);
+        hockeyBall.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        hockeyBall.transform.position = new Vector3(BallScript.PLAYER1_RESET_X, hockeyBall.transform.position.y,
+            (BallScript.PLAYER1_RESET_Z + BallScript.PLAYER2_RESET_Z) / 2f);
     }
 
-    public static void ReadyGame()
+    private static void ReadyGame()
     {
-        if (!alreadyReady && isConnect)
+        if (!_alreadyReady && _isConnect)
         {
             string myIp = IPManager.GetIP(ADDRESSFAM.IPv4);
             Debug.Log("myIp : " + myIp);
             var emitJsonStr = "{\"ip\": \"" + myIp + "\"}";
-            socket.EmitJson("userReady", emitJsonStr);
-            alreadyReady = true;
+            WebSocket.EmitJson("userReady", emitJsonStr);
+            _alreadyReady = true;
         }
     }
 
@@ -301,83 +358,44 @@ public class ControllMove : NetworkBehaviour
     void Update()
     {
         // 스페이스 바 눌리면 레디 (1회만)
-        if (Input.GetKeyDown(KeyCode.Space) && isConnect)
+        if (Input.GetKeyDown(KeyCode.Space) && _isConnect)
         {
-            gameReadyText.text = "상대방을 기다리는 중..";
+            gameReadyText.text = "Waiting for rival...";
             ReadyGame();
         }
 
         // R키 눌리면 공 위치 초기화
-        if (Input.GetKeyDown(KeyCode.R) && playerType == "P1")
-        {
-            BallReset();
-            //socket.EmitJson("playerOn", "");
-        }
+        if (Input.GetKeyDown(KeyCode.R) && PlayerType == "P1") BallReset();
 
-        controller = new Controller();
-        Frame frame = controller.Frame();
+        _controller = new Controller();
+        Frame frame = _controller.Frame();
         List<Hand> hands = frame.Hands;
+
         if (frame.Hands.Count > 0)
-            //if (false)
         {
             var handPosition = hands[0].PalmPosition;
-            //Debug.Log("x : " + handPosition.x + ", y : " + handPosition.y + ", z : " + handPosition.z);
-
             string stickTag = "";
-            if (playerType == "P1")
+            if (PlayerType == "P1")
             {
                 stickTag = "STICK1";
                 var x = handPosition.x / 700f;
-                var y = StickScript.stickYPosition;
+                var y = StickScript.StickYPosition;
                 var z = handPosition.z / -700f + 0.75f;
-                GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(x, y, z);
+                foreach (var o in GameObject.FindGameObjectsWithTag(stickTag))
+                {
+                    o.transform.position = new Vector3(x, y, z);
+                }
             }
             else
             {
                 stickTag = "STICK2";
 
                 var x = handPosition.x * -1f / 700f;
-                var y = StickScript.stickYPosition;
+                var y = StickScript.StickYPosition;
                 var z = (handPosition.z / -700f + 0.2f) * -1f + 1.4f;
-                GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(x, y, z);
-
-                if ((DateTime.Now - stickPrevTime).Ticks > 1000000)
+                foreach (var o in GameObject.FindGameObjectsWithTag(stickTag))
                 {
-                    stickPrevTime = DateTime.Now;
-                    var positionJsonStr = "{\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z + ", \"player\":" + "\"" +
-                                          playerType + "\"" + "}";
-                    socket.EmitJson("handPosition", positionJsonStr);
-                }
-            }
-        }
-        else
-        {
-            string stickTag = "";
-            if (playerType == "P1")
-            {
-                stickTag = "STICK1";
-                var x = 0f;
-                var y = StickScript.stickYPosition;
-                var z = 0.5f;
-                GameObject.FindGameObjectWithTag(stickTag).transform.position = new Vector3(x, y, z);
-            }
-            else
-            {
-                stickTag = "STICK2";
-
-                var x = 0f;
-                var y = StickScript.stickYPosition;
-                var z = 1.4f;
-                var stick = GameObject.FindGameObjectWithTag(stickTag);
-                stick.transform.position = new Vector3(x, y, z);
-                stick.GetComponent<Rigidbody>().velocity = Vector3.zero;
-
-                if ((DateTime.Now - stickPrevTime).Ticks > 1000000)
-                {
-                    stickPrevTime = DateTime.Now;
-                    var positionJsonStr = "{\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z + ", \"player\":" + "\"" +
-                                          playerType + "\"" + "}";
-                    socket.EmitJson("handPosition", positionJsonStr);
+                    o.transform.position = new Vector3(x, y, z);
                 }
             }
         }

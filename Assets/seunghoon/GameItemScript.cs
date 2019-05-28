@@ -10,7 +10,7 @@ public class GameItemScript : MonoBehaviour
     private Vector3 removePosition;
     public float aliveYPosition = -0.091f;
     private const float REMOVE_Y_POSITION = -0.3f;
-    public const float Z_POSITION = 0.976f;
+    private const float Z_POSITION = 0.976f;
 
     private bool _isAliveItem;
 
@@ -39,9 +39,9 @@ public class GameItemScript : MonoBehaviour
             //서버로 Item먹었다고 Emit
             string eatItemEmitJson = "{" +
                                      "\"itemName\": \"" + ItemModel.ParseItemToString(itemName) + "\"," +
-                                     " \"player\":\"" + BallScript.whoPush + "\"" +
+                                     " \"player\":\"" + BallScript.WhoPush + "\"" +
                                      "}";
-            ControllMove.socket.EmitJson("eatItem", eatItemEmitJson);
+            ControllMove.WebSocket.EmitJson("eatItem", eatItemEmitJson);
         }
     }
 

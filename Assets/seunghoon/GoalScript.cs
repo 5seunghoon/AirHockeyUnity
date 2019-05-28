@@ -39,21 +39,21 @@ public class GoalScript : MonoBehaviour
                 }
 
                 var jsonStr = "{\"player\":\"" + getScorePlayer +
-                              "\",\"scorePoint\":\"" + BallScript.scorePoint + "\"}";
-                ControllMove.socket.EmitJson("scoreUp", jsonStr);
+                              "\",\"scorePoint\":\"" + BallScript.ScorePoint + "\"}";
+                ControllMove.WebSocket.EmitJson("scoreUp", jsonStr);
 
                 GameObject o;
                 (o = col.gameObject).GetComponent<Rigidbody>().velocity = Vector3.zero;
 
-                if (BallScript.whoPush == "P2")
+                if (BallScript.WhoPush == "P2")
                 {
-                    o.transform.position = new Vector3(BallScript.player2ResetX, o.transform.position.y,
-                        BallScript.player2ResetZ);
+                    o.transform.position = new Vector3(BallScript.PLAYER2_RESET_X, o.transform.position.y,
+                        BallScript.PLAYER2_RESET_Z);
                 }
                 else
                 {
-                    o.transform.position = new Vector3(BallScript.player1ResetX, o.transform.position.y,
-                        BallScript.player1ResetZ);
+                    o.transform.position = new Vector3(BallScript.PLAYER1_RESET_X, o.transform.position.y,
+                        BallScript.PLAYER1_RESET_Z);
                 }
             }
         }

@@ -6,20 +6,17 @@ const io = require('socket.io')(server);
 const date = require('date-utils');
 
 //player name : P1, P2
-var ready = [false, false];
-var score = [0, 0];
-var pCount = 0;
-var playing = false;
+let ready = [false, false];
+let score = [0, 0];
+let pCount = 0;
+let playing = false;
 
 //about time
-var timer = 0;
-var timeMst = "";
-var timeSst = "";
+let timer = 0;
+let timeMst = "";
+let timeSst = "";
 
-//about item
-var item_timer = 9999;
-var item_on = false;
-
+const gameEndTimer = 120;
 
 let itemTable = [];
 let itemTableEndIndex = 0;
@@ -29,9 +26,9 @@ const itemInterval = 3;
 let hostIp = "";
 let clientIp = "";
 
-const plusScoreNormal = 1;
+const addScoreNormal = 1;
 
-const plusScoreDouble = 2;
+const plusScoreAddition = 1;
 let plusScoreActivation = false;
 let plusScoreTime;
 let plusScorePlayer = "";
@@ -48,6 +45,12 @@ let player1GoalItemTime;
 let player2GoalItemTime;
 
 let penaltyKickPlayer = "";
+
+const feverTimeInterval = 15;
+let feverTimeActivation = false;
+let feverTimeScoreAddition = 2;
+
+let onceTimer = null;
 
 function makeItemTable() {
     //아이템 확률 등이 적혀있는 list를 초기화
@@ -71,8 +74,16 @@ function addItemRandomTable(percentage, itemName) {
     itemTable.push(itemTableJson);
 }
 
+function toTimeString(timer) {
+    let m = parseInt(timer / 60);
+    let s = timer % 60;
+    let mst = m < 10 ? "0" + m : m;
+    let sst = s < 10 ? "0" + s : s;
+    timeMst = mst;
+    timeSst = sst;
+}
 
-var timerSetting = () => {
+function timerSetting() {
     timer++;
     toTimeString(timer);
     console.log(timeMst + " : " + timeSst);
@@ -135,57 +146,36 @@ var timerSetting = () => {
         }
     }
 
-
     //Fever time
-    if (timer >= (180 - 15)) {
-        io.sockets.emit("feverTime");
-        console.log("Fever time! U can get double score!")
+    if (!feverTimeActivation) {
+        if (timer >= (gameEndTimer - feverTimeInterval)) {
+            feverTimeActivation = true;
+            io.sockets.emit("feverTimeEmit", {});
+            console.log("Fever time! U can get double score!")
+        }
     }
 
-    if (timer >= 180 || playing == false) {
-        io.sockets.emit("gameEndEmit");
-        console.log("game End");
+    if (timer >= gameEndTimer || playing === false) {
         playing = false;
-
-        //인터발 정지 및 게임종료
+        feverTimeActivation = false;
         clearInterval(onceTimer);
         timer = 0;
-    }
 
-    //아이템 관련
-    if (timer == 30 || timer == 60 || timer == 90 || timer == 120 || timer == 150) {
-        io.sockets.emit("itemFloating");
-        console.log("item floating");
-    }
-    if (!item_on && (timer == 40 || timer == 70 || timer == 100 || timer == 130 || timer == 160)) {
-        io.sockets.emit("itemDelete");
-        console.log("item is deleted , you cannot get!");
-    }
-    if (timer - item_timer >= 10) {
-        io.sockets.emit("itemEnd");
-        item_on = false;
-    }
-};
+        let winnerPlayer = "";
+        if (score[0] > score[1]) {
+            winnerPlayer = "P1";
+        } else if (score[0] < score[1]) {
+            winnerPlayer = "P2";
+        } else {
+            winnerPlayer = "DRAW";
+        }
 
-var onceTimer = null;
-
-var toTimeString = (timer) => {
-    var m = parseInt(timer / 60);
-    var s = timer % 60;
-    var mst = "";
-    var sst = "";
-    mst = "0" + m;
-    if (s < 10) {
-        sst = "0" + s;
-    } else {
-        sst = s;
+        io.sockets.emit("gameEndEmit", {winner: winnerPlayer});
+        console.log("game End, winner : " + winnerPlayer);
     }
-    timeMst = mst;
-    timeSst = sst;
-};
+}
 
-
-var hockey = (io) => {
+function hockey(io) {
 
     //socket.emit 현재 연결되어 있는 클라이언트 소켓에
     //socket.broadcast.emit 나를 제외한 클라이언트 소켓에
@@ -196,14 +186,14 @@ var hockey = (io) => {
 
         socket.on("userReady", (data) => {
             console.log("userReady ");
-            if (pCount == 0) {
+            if (pCount === 0) {
                 socket.emit("userReadyOn", {player: "P1"});
                 pCount++;
 
                 ready[0] = true;
                 hostIp = data.ip;
                 console.log("P1 IS READY, IP : " + hostIp);
-            } else if (pCount == 1) {
+            } else if (pCount === 1) {
                 socket.emit("userReadyOn", {player: "P2"});
                 pCount++;
 
@@ -212,11 +202,15 @@ var hockey = (io) => {
                 console.log("P2 IS READY, IP : " + clientIp);
             }
             //두명 레디 신호시 게임 시작
-            //if (ready[0] && ready[1] && !playing) {
-            if (ready[0] && !playing) {
+            if (ready[0] && ready[1] && !playing) {
+            //if (ready[0] && !playing) {
+                io.sockets.emit("scoreUpEmit", {p1Score: 0 + "", p2Score: 0 + ""});
                 io.sockets.emit("gameStart", {hostIp: hostIp, clientIp: clientIp});
                 console.log("GAME START!");
                 playing = true;
+
+                score[0] = 0;
+                score[1] = 0;
 
                 //다음게임을 위한 초기화
                 ready[0] = false;
@@ -236,9 +230,9 @@ var hockey = (io) => {
 
         socket.on("handPosition", (data) => {
             //handPosition을 p2 가 p1에게 보낸다
-            if (data.player == "P2") {
+            if (data.player === "P2") {
                 // console.log("HAND_POSITION(P2): " + data.player + "(" + data.x + "," + data.y + "," + data.z + ")");
-                socket.broadcast.emit("handPositionEmit", {x: data.x, y: data.y, z: data.z});
+                //socket.broadcast.emit("handPositionEmit", {x: data.x, y: data.y, z: data.z});
             }
         });
 
@@ -286,59 +280,34 @@ var hockey = (io) => {
 
         socket.on("scoreUp", (data) => {
             console.log("SCORE_UP data player : " + data.player);
+            let addScore = addScoreNormal;
+            let addScoreIndex = 0;
             if (data.player === "P1") {
-                if (plusScoreActivation && plusScorePlayer === "P1") {
-                    console.log("player score up with item : P1");
-                    score[0] += plusScoreDouble;
-                } else {
-                    score[0] += plusScoreNormal;
+                addScoreIndex = 0;
+            } else {
+                addScoreIndex = 1;
+            }
+            if(plusScoreActivation) {
+                if((addScoreIndex === 0 && plusScorePlayer === "P1") || (addScoreIndex === 1 && plusScorePlayer === "P2")) {
+                    addScore += plusScoreAddition;
                 }
             }
-            if (data.player === "P2") {
-                if (plusScoreActivation && plusScorePlayer === "P2") {
-                    console.log("player score up with item : P2");
-                    score[1] += plusScoreDouble;
-                } else {
-                    score[1] += plusScoreNormal;
-                }
+            if (feverTimeActivation) {
+                addScore += feverTimeScoreAddition;
             }
+            score[addScoreIndex] += addScore;
+
             console.log("SCORE_UP data :  " + score[0] + ":" + score[1]);
 
             io.sockets.emit("scoreUpEmit", {p1Score: score[0] + "", p2Score: score[1] + ""});
 
-            if (score[0] == 15 || score[1] == 15) {
+            if (score[0] >= 15 || score[1] >= 15) {
                 io.sockets.emit("gameEndEmit");
                 playing = false;
             }
         });
-        /*
-                //about item
-
-                socket.on("getItem", (data)=>{
-                    item_on = true;
-                    var randomItem = Math.random(4); //0,1,2,3
-
-                    if(randomItem == 0){
-                        io.sockets.emit("doubleScore");
-                        item_timer = timer;
-                        console.log("Item : double Score");
-                        plus_score = 2;
-                    }else if(randomItem == 1){
-                        io.sockets.emit("bigGoal");
-                        item_timer = timer;
-                        console.log("Item : big Goal basket");
-                    }else if(randomItem == 2){
-                        io.sockets.emit("smallGoal");
-                        item_timer = timer;
-                        console.log("Item : small Goal basket");
-                    }else if(randomItem == 3){
-                        io.socket.emit("panaltyKick");
-                        item_timer = timer;
-                        console.log("Item : panalty Kick (reset a ball position on front of me)");
-                    }
-                });*/
     });
-};
+}
 
 makeItemTable();
 

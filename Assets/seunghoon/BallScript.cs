@@ -8,84 +8,48 @@ using UnityEngine;
 
 public class BallScript : MonoBehaviour
 {
-    public static Vector3 player1ResetVector3 = new Vector3(0f, yPosDefault, 0.82f);
-    public static Vector3 player2ResetVector3 = new Vector3(0f, yPosDefault, 1.139f);
+    public const float PLAYER1_RESET_X = 0f;
+    public const float PLAYER1_RESET_Z = 0.82f;
+    public const float PLAYER2_RESET_X = 0f;
+    public const float PLAYER2_RESET_Z = 1.139f;
 
-    public static float player1ResetX = 0f;
-    public static float player1ResetZ = 0.82f;
-    public static float player2ResetX = 0f;
-    public static float player2ResetZ = 1.139f;
+    public static int ScorePoint = 1;
 
-    private DateTime prevTime = DateTime.Now;
+    private const float Y_POS_DEFAULT = -0.112f;
 
-    public static bool isSendBallPosition = false;
+    private const float MAX_VELOCITY = 0.7f;
 
-    public static int scorePoint = 1;
-
-    private static float yPosDefault = -0.112f;
-
-    private static float maxVelocity = 0.7f;
-
-    public static String whoPush = "NONE";
+    public static string WhoPush = "NONE";
 
     public Material singleScoreMaterial;
     public Material player1StickMaterial;
     public Material player2StickMaterial;
 
+    public GameObject upWall;
+    public GameObject downWall;
+    public GameObject leftWall;
+    public GameObject rightWall;
+
+    private static float _xBoundStart;
+    private static float _xBoundEnd;
+    private static float _zBoundStart;
+    private static float _zBoundEnd;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
-    }
-
-    private void SetBallPosition(string data)
-    {
-        //Debug.Log("setBallPosition data : " + data);
-        BallPositionModel ballPositionModel = JsonUtility.FromJson<BallPositionModel>(data);
-        //Debug.Log("bpm x : " + ballPositionModel.x + ", bpm y : " + ballPositionModel.y + ", bpm z : " +
-        //          ballPositionModel.z);
-
-        //change ball position
-        Vector3 newPositionVector = new Vector3(ballPositionModel.x, ballPositionModel.y, ballPositionModel.z);
-        transform.position = newPositionVector;
-        GetComponent<Rigidbody>().velocity = Vector3.zero;
-        var jstr = "{\"interval\":" + (DateTime.Now.Ticks - ballPositionModel.tick) + "}";
-        ControllMove.socket.EmitJson("TEST_EMIT", jstr);
-    }
-
-    private string BallPositionToJson()
-    {
-        var position = transform.position;
-        var x = position.x;
-        var y = position.y;
-        var z = position.z;
-
-        // 반올림
-        x = Mathf.Round(x * 100000f) * 0.00001f;
-        y = Mathf.Round(y * 100000f) * 0.00001f;
-        z = Mathf.Round(z * 100000f) * 0.00001f;
-
-        var positionJsonStr =
-            "{\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z + ", \"tick\":" + DateTime.Now.Ticks + "}";
-        return positionJsonStr;
+        _xBoundStart = leftWall.transform.position.x;
+        _xBoundEnd = rightWall.transform.position.x;
+        _zBoundStart = downWall.transform.position.z;
+        _zBoundEnd = upWall.transform.position.z;
     }
 
     // Update is called once per frame
     void Update()
     {
         var rigidbody = GetComponent<Rigidbody>();
-        // Player 1일 경우, 공 위치를 서버로 송신
-        if (ControllMove.playerType == "P1" && isSendBallPosition &&
-            Math.Abs(DateTime.Now.Ticks - prevTime.Ticks) > 1000000) //100ms당 1회 
-        {
-            prevTime = DateTime.Now;
-            var positionJsonStr = BallPositionToJson();
-            //Debug.Log("position Json Str : " + positionJsonStr);
-            //공의 위치를 Socket Emit
-            ControllMove.socket.EmitJson("ballPosition", positionJsonStr);
-        }
-
-        if (ControllMove.playerType == "P2")
+        
+        if (ControllMove.PlayerType == "P2")
         {
             rigidbody.detectCollisions = false;
         }
@@ -99,31 +63,44 @@ public class BallScript : MonoBehaviour
             rigidbody.AddForce(rigidbody.velocity.normalized * (rigidbody.velocity.magnitude * 2000f + 1f),
                 ForceMode.Impulse);
         }
-        else if (rigidbody.velocity.magnitude > maxVelocity)
+        else if (rigidbody.velocity.magnitude > MAX_VELOCITY)
         {
             Debug.Log("UNPUSH");
             var velocity = rigidbody.velocity;
             rigidbody.velocity = new Vector3(velocity.x * 0.7f, velocity.x * 0.7f, velocity.x * 0.7f);
         }
+
+        if (ControllMove.PlayerType == "P1")
+        {
+            var position = transform.position;
+            var ballX = position.x;
+            var ballZ = position.z;
+
+            if (ballX < _xBoundStart || ballX > _xBoundEnd || ballZ < _zBoundStart || ballZ > _zBoundEnd)
+            {
+                GetComponent<Rigidbody>().velocity = Vector3.zero;
+                transform.position = new Vector3(0f, Y_POS_DEFAULT, (_zBoundStart + _zBoundEnd) * 0.5f);
+            }
+        }
     }
 
 
-    public void changeToDoubleScoreBall(string player)
+    public void ChangeToDoubleScoreBall(string player)
     {
-        scorePoint = 2;
+        ScorePoint = 2;
         GetComponent<MeshRenderer>().material = (player == "P1") ? player1StickMaterial : player2StickMaterial;
     }
 
-    public void changeToSingleScoreBall()
+    public void ChangeToSingleScoreBall()
     {
-        scorePoint = 1;
+        ScorePoint = 1;
         GetComponent<MeshRenderer>().material = singleScoreMaterial;
     }
 
-    public void BallAddForce(Vector3 inNormal)
+    public void BallAddForce(Vector3 inNormal, float stickPower)
     {
-        inNormal.x *= 1.3f;
-        inNormal.z *= 1.3f;
+        inNormal.x *= stickPower + 0.5f;
+        inNormal.z *= stickPower + 0.5f;
         GetComponent<Rigidbody>().AddForce(inNormal, ForceMode.VelocityChange);
     }
 
@@ -132,10 +109,10 @@ public class BallScript : MonoBehaviour
         Debug.Log("penaltyKick Mode");
         GetComponent<Rigidbody>().velocity = Vector3.zero;
         
-        if (ControllMove.playerType == "P2") return;
+        if (ControllMove.PlayerType == "P2") return;
 
         if (player == "P1")
-            transform.position = new Vector3(BallScript.player1ResetX, transform.position.y, BallScript.player1ResetZ);
-        else transform.position = new Vector3(BallScript.player2ResetX, transform.position.y, BallScript.player2ResetZ);
+            transform.position = new Vector3(BallScript.PLAYER1_RESET_X, transform.position.y, BallScript.PLAYER1_RESET_Z);
+        else transform.position = new Vector3(BallScript.PLAYER2_RESET_X, transform.position.y, BallScript.PLAYER2_RESET_Z);
     }
 }
