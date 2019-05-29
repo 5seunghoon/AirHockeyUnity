@@ -42,10 +42,12 @@ public class ControllMove : NetworkBehaviour
     public Camera player1Camera;
     public Camera player2Camera;
 
+    private static bool _isGameEnd = false;
+
     private static bool _alreadyReady = false;
     private static bool _isConnect = false;
 
-    private string _url = "http://127.0.0.1:3000";
+    private string _url = "http://192.168.43.173:3000";
 
     public static Socket WebSocket;
 
@@ -85,9 +87,10 @@ public class ControllMove : NetworkBehaviour
         {
             Debug.Log("SERVER URL TEXT FILE NOT FOUND");
             gameReadyText.fontSize = 18;
-            gameReadyText.text = "SERVER URL TEXT FILE NOT FOUND, please write server ip in \"build\\AirHockey_Data\\server_url.txt\"";
+            gameReadyText.text =
+                "SERVER URL TEXT FILE NOT FOUND, please write server ip in \"build\\AirHockey_Data\\server_url.txt\"";
         }
-        
+
         WebSocket = Socket.Connect(_url);
         WebSocket.On("connect", ConnectCallback);
         WebSocket.On("userReadyOn", UserReadyCallback);
@@ -99,7 +102,7 @@ public class ControllMove : NetworkBehaviour
         WebSocket.On("endItemEmit", ItemEndCallback);
         WebSocket.On("feverTimeEmit", FeverTimeCallback);
         WebSocket.On("gameEndEmit", GameEndCallback);
-        
+
         BallReset(); // 공 위치 초기화 
     }
 
@@ -220,6 +223,8 @@ public class ControllMove : NetworkBehaviour
     {
         GameEndModel gameEndModel = JsonUtility.FromJson<GameEndModel>(data);
 
+        _isGameEnd = true;
+
         hockeyBall.SetActive(false);
 
         ShowWinner(gameEndModel);
@@ -280,9 +285,9 @@ public class ControllMove : NetworkBehaviour
     private void GameStartCallback(string data) // 게임 시작 신호 대기
     {
         Debug.Log("game start");
-        
+
         BallReset();
-        
+
         ipModel = JsonUtility.FromJson<IpModel>(data);
 
         gameReadyText.text = "";
@@ -358,10 +363,18 @@ public class ControllMove : NetworkBehaviour
     void Update()
     {
         // 스페이스 바 눌리면 레디 (1회만)
-        if (Input.GetKeyDown(KeyCode.Space) && _isConnect)
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            gameReadyText.text = "Waiting for rival...";
-            ReadyGame();
+            if (_isConnect)
+            {
+                gameReadyText.text = "Waiting for rival...";
+                ReadyGame();
+            }
+
+            if (_isGameEnd)
+            {
+                _isGameEnd = false;
+            }
         }
 
         // R키 눌리면 공 위치 초기화

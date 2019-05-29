@@ -5,6 +5,9 @@
 [Bb]uilds/
 [Ll]ogs/
 
+buildMac/
+build.zip
+buildMac.zip
 .idea/
 
 # Never ignore Asset meta data

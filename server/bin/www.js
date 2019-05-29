@@ -17,6 +17,7 @@ let timeMst = "";
 let timeSst = "";
 
 const gameEndTimer = 120;
+const gameEndScore = 15;
 
 let itemTable = [];
 let itemTableEndIndex = 0;
@@ -52,6 +53,45 @@ let feverTimeScoreAddition = 2;
 
 let onceTimer = null;
 
+function initGame() {
+
+    ready = [false, false];
+    score = [0, 0];
+    pCount = 0;
+    playing = false;
+
+    timer = 0;
+    timeMst = "";
+    timeSst = "";
+
+
+    itemTable = [];
+    itemTableEndIndex = 0;
+
+    hostIp = "";
+    clientIp = "";
+
+    plusScoreActivation = false;
+    plusScoreTime = 0;
+    plusScorePlayer = "";
+
+    player1BigGoalActivation = false;
+    player2BigGoalActivation = false;
+    player1SmallGoalActivation = false;
+    player2SmallGoalActivation = false;
+    bigGoalPlayer = "";
+    smallGoalPlayer = "";
+    player1GoalItemTime = 0;
+    player2GoalItemTime = 0;
+
+    penaltyKickPlayer = "";
+
+    feverTimeActivation = false;
+    feverTimeScoreAddition = 2;
+
+    onceTimer = null;
+}
+
 function makeItemTable() {
     //아이템 확률 등이 적혀있는 list를 초기화
     addItemRandomTable(22, "DoubleScore");
@@ -81,6 +121,46 @@ function toTimeString(timer) {
     let sst = s < 10 ? "0" + s : s;
     timeMst = mst;
     timeSst = sst;
+}
+
+function gameStart(io) {
+    io.sockets.emit("scoreUpEmit", {p1Score: 0 + "", p2Score: 0 + ""});
+    io.sockets.emit("gameStart", {hostIp: hostIp, clientIp: clientIp});
+    console.log("GAME START!");
+    playing = true;
+
+    score[0] = 0;
+    score[1] = 0;
+
+    //다음게임을 위한 초기화
+    ready[0] = false;
+    ready[1] = false;
+    pCount = 0;
+
+    //timer setting
+    onceTimer = setInterval(timerSetting, 1000);
+}
+
+function gameEnd(io, onceTimer) {
+    playing = false;
+    feverTimeActivation = false;
+    clearInterval(onceTimer);
+    timer = 0;
+
+    let winnerPlayer = "";
+    if (score[0] > score[1]) {
+        winnerPlayer = "P1";
+    } else if (score[0] < score[1]) {
+        winnerPlayer = "P2";
+    } else {
+        winnerPlayer = "DRAW";
+    }
+
+    io.sockets.emit("gameEndEmit", {winner: winnerPlayer});
+
+    console.log("game End, winner : " + winnerPlayer);
+
+    initGame();
 }
 
 function timerSetting() {
@@ -155,23 +235,8 @@ function timerSetting() {
         }
     }
 
-    if (timer >= gameEndTimer || playing === false) {
-        playing = false;
-        feverTimeActivation = false;
-        clearInterval(onceTimer);
-        timer = 0;
-
-        let winnerPlayer = "";
-        if (score[0] > score[1]) {
-            winnerPlayer = "P1";
-        } else if (score[0] < score[1]) {
-            winnerPlayer = "P2";
-        } else {
-            winnerPlayer = "DRAW";
-        }
-
-        io.sockets.emit("gameEndEmit", {winner: winnerPlayer});
-        console.log("game End, winner : " + winnerPlayer);
+    if (timer >= gameEndTimer && playing === true) {
+        gameEnd(io, onceTimer);
     }
 }
 
@@ -204,29 +269,10 @@ function hockey(io) {
             //두명 레디 신호시 게임 시작
             if (ready[0] && ready[1] && !playing) {
             //if (ready[0] && !playing) {
-                io.sockets.emit("scoreUpEmit", {p1Score: 0 + "", p2Score: 0 + ""});
-                io.sockets.emit("gameStart", {hostIp: hostIp, clientIp: clientIp});
-                console.log("GAME START!");
-                playing = true;
 
-                score[0] = 0;
-                score[1] = 0;
-
-                //다음게임을 위한 초기화
-                ready[0] = false;
-                ready[1] = false;
-                pCount = 0;
-
-                //timer setting
-                onceTimer = setInterval(timerSetting, 1000);
+                gameStart(io);
             }
         });
-
-        //ballPosition P2P 통신 예정
-        // socket.on("ballPosition", (data)=>{ //위치
-        //     console.log("BALL_POSITION :" + "(" + data.x + "," + data.y + "," + data.z + ")");
-        //     socket.broadcast.emit("ballPositionEmit", { x : data.x, y : data.y, z : data.z} ) ;
-        // });
 
         socket.on("handPosition", (data) => {
             //handPosition을 p2 가 p1에게 보낸다
@@ -301,13 +347,22 @@ function hockey(io) {
 
             io.sockets.emit("scoreUpEmit", {p1Score: score[0] + "", p2Score: score[1] + ""});
 
-            if (score[0] >= 15 || score[1] >= 15) {
-                io.sockets.emit("gameEndEmit");
-                playing = false;
+            if (score[0] >= gameEndScore || score[1] >= gameEndScore) {
+                gameEnd(io, onceTimer);
+            }
+        });
+
+        socket.on("gameRestart", (data) => {
+            console.log("gameRestart");
+            if(playing === false) {
+                io.sockets.emit("gameRestartEmit", {playing : true});
+                gameStart(io);
             }
         });
     });
 }
+
+initGame();
 
 makeItemTable();
 

@@ -4235,7 +4235,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   youScore: {fileID: 1150630530}
-  rivalScroe: {fileID: 289605519}
+  rivalScore: {fileID: 289605519}
   gameTime: {fileID: 2145084592}
   gameReadyText: {fileID: 2023516757}
   gameReadyTextBgImage: {fileID: 1207781469}
