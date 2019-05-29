@@ -24,14 +24,6 @@ public class ItemText : MonoBehaviour
         {
             itemText.text = "";
             yield return new WaitForSeconds(.5f);
-            if ()
-            {
-                itemText.text = "Player 1 got a ITEM!";
-            }
-            else
-            {
-                itemText.text = "Player 2 got a ITEM!";
-            }
             yield return new WaitForSeconds(.5f);
         }
     }

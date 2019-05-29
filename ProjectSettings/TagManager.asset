@@ -7,6 +7,12 @@ TagManager:
   - P1GOAL
   - P2GOAL
   - BALL
+  - WALL
+  - FLOOR
+  - STICK1
+  - STICK2
+  - LEAP_CONTROLLER
+  - ITEM
   layers:
   - Default
   - TransparentFX
@@ -16,8 +22,8 @@ TagManager:
   - UI
   - 
   - 
-  - PostProcessing
-  - 
+  - WallLayer
+  - StickLayer
   - 
   - 
   - 

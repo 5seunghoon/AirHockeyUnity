@@ -1,37 +1,89 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using seunghoon;
 using UnityEngine;
 
 public class GoalScript : MonoBehaviour
 {
+    private DateTime prevTime = DateTime.Now;
 
-    public static Vector3 resetVector3 = new Vector3(0f, -0.1145f, 0.304f);
+    private const float X_SCALE_DEFAULT = 0.25f;
+    private const float X_SCALE_BIG = 0.425f;
+    private const float X_SCALE_SMALL = 0.12f;
 
     // Start is called before the first frame update
     void Start()
     {
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        
     }
 
     void OnTriggerEnter(Collider col)
     {
         // 벽에 닿으면 공 위치 초기화
-        if(col.tag == "BALL")
+        if (col.CompareTag("BALL"))
         {
-            Debug.Log("Ball Trigger Enter");
-            
-            // 여러번 Emit 됨 : 1초에 1회만 Emit되게 수정하면 좋을듯
-            ControllMove.socket.EmitJson("SCORE_UP", "{\"player\":\"P1\",\"score\":\"1\"}");
-            
-            col.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-            col.gameObject.transform.position = resetVector3;
-            
+            if (DateTime.Now.Ticks - prevTime.Ticks > 10000000) // 1초에 한번만 Emit
+            {
+                prevTime = DateTime.Now;
+
+                Debug.Log("Ball Trigger Enter");
+                string getScorePlayer = "P1";
+                if (CompareTag("P2GOAL"))
+                {
+                    getScorePlayer = "P2";
+                }
+
+                var jsonStr = "{\"player\":\"" + getScorePlayer +
+                              "\",\"scorePoint\":\"" + BallScript.ScorePoint + "\"}";
+                ControllMove.WebSocket.EmitJson("scoreUp", jsonStr);
+
+                GameObject o;
+                (o = col.gameObject).GetComponent<Rigidbody>().velocity = Vector3.zero;
+
+                if (BallScript.WhoPush == "P2")
+                {
+                    o.transform.position = new Vector3(BallScript.PLAYER2_RESET_X, o.transform.position.y,
+                        BallScript.PLAYER2_RESET_Z);
+                }
+                else
+                {
+                    o.transform.position = new Vector3(BallScript.PLAYER1_RESET_X, o.transform.position.y,
+                        BallScript.PLAYER1_RESET_Z);
+                }
+            }
         }
+    }
+
+    public void BigGoalModeStart(string player)
+    {
+        Debug.Log("big goal mode start player : " + player);
+        var localScale = transform.localScale;
+        transform.localScale = new Vector3(X_SCALE_BIG, localScale.y, localScale.z);
+    }
+
+    public void BigGoalModeEnd(string player)
+    {
+        Debug.Log("big goal mode end player : " + player);
+        var localScale = transform.localScale;
+        transform.localScale = new Vector3(X_SCALE_DEFAULT, localScale.y, localScale.z);
+    }
+
+    public void SmallGoalModeStart(string player)
+    {
+        Debug.Log("small goal mode start player : " + player);
+        var localScale = transform.localScale;
+        transform.localScale = new Vector3(X_SCALE_SMALL, localScale.y, localScale.z);
+    }
+
+    public void SmallGoalModeEnd(string player)
+    {
+        Debug.Log("small goal mode end player : " + player);
+        var localScale = transform.localScale;
+        transform.localScale = new Vector3(X_SCALE_DEFAULT, localScale.y, localScale.z);
     }
 }

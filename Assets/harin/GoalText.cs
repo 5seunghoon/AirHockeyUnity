@@ -15,9 +15,5 @@ public class GoalText : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if ()
-        {
-            goalText.text = "G  O  A  L  !"
-        }
     }
 }
