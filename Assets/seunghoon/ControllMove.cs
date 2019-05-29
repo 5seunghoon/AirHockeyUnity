@@ -102,6 +102,7 @@ public class ControllMove : NetworkBehaviour
         WebSocket.On("endItemEmit", ItemEndCallback);
         WebSocket.On("feverTimeEmit", FeverTimeCallback);
         WebSocket.On("gameEndEmit", GameEndCallback);
+        WebSocket.On("gameRestartEmit", GameRestartCallback);
 
         BallReset(); // 공 위치 초기화 
     }
@@ -225,7 +226,7 @@ public class ControllMove : NetworkBehaviour
 
         _isGameEnd = true;
 
-        hockeyBall.SetActive(false);
+        hockeyBall.GetComponent<Rigidbody>().isKinematic = true;
 
         ShowWinner(gameEndModel);
     }
@@ -250,6 +251,20 @@ public class ControllMove : NetworkBehaviour
 
         StartCoroutine(ShowFlickering(winnerText));
         StartCoroutine(ShowFlickering(gameOverText));
+    }
+
+    private void GameRestartCallback(string data)
+    {
+        Debug.Log("game restart");
+
+        hockeyBall.GetComponent<Rigidbody>().isKinematic = false;
+        BallReset();
+
+        gameOverText.SetActive(false);
+        winnerText.SetActive(false);
+        
+        gameReadyText.text = "";
+        gameReadyTextBgImage.enabled = false;
     }
 
     private void ScoreUpCallback(string data)
@@ -374,6 +389,7 @@ public class ControllMove : NetworkBehaviour
             if (_isGameEnd)
             {
                 _isGameEnd = false;
+                WebSocket.Emit("gameRestart");
             }
         }
 

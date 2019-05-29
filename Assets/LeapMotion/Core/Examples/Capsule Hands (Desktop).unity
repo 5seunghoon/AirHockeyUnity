@@ -216,7 +216,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09d15914922e34d4b9b492321268be86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wallTypeType: 3
+  wallTypeType: 0
 --- !u!1 &107123735
 GameObject:
   m_ObjectHideFlags: 0
@@ -1927,10 +1927,10 @@ MonoBehaviour:
   m_SpawnPrefabs:
   - {fileID: 3726637433448664890, guid: 921acb5b6864df1438d966d51760cf29, type: 3}
   - {fileID: 4976090116666119700, guid: 89019c3f70654e54e81c2045570e8e6e, type: 3}
-  - {fileID: 8549010322256831557, guid: 7bd7f0b25bb3d0e469556545a4703898, type: 3}
   - {fileID: 4022728607782358913, guid: 48e83bea0f141734292094eb0702ee6d, type: 3}
-  - {fileID: 6678208845113363997, guid: 1a1d41bffef0c144cb45bc6f59f803a5, type: 3}
+  - {fileID: 8549010322256831557, guid: 7bd7f0b25bb3d0e469556545a4703898, type: 3}
   - {fileID: 7663205822102356309, guid: 99c9398dfd94d3340973b379faab6442, type: 3}
+  - {fileID: 6678208845113363997, guid: 1a1d41bffef0c144cb45bc6f59f803a5, type: 3}
   m_CustomConfig: 0
   m_MaxConnections: 4
   m_ConnectionConfig:
@@ -1973,7 +1973,7 @@ MonoBehaviour:
     m_MaxTimerTimeout: 12000
     m_MinNetSimulatorTimeout: 1
     m_MaxNetSimulatorTimeout: 12000
-  m_Channels: 0500000000000000
+  m_Channels: 
   m_UseWebSockets: 0
   m_UseSimulator: 0
   m_SimulatedLatency: 1
@@ -2501,23 +2501,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _leapProvider: {fileID: 0}
-  ModelPool:
-  - GroupName: Graphics_Hands
-    _handModelManager: {fileID: 0}
-    LeftModel: {fileID: 525709306}
-    IsLeftToBeSpawned: 0
-    RightModel: {fileID: 1944805179}
-    IsRightToBeSpawned: 0
-    IsEnabled: 1
-    CanDuplicate: 1
-  - GroupName: Physics_Hands
-    _handModelManager: {fileID: 0}
-    LeftModel: {fileID: 795409495}
-    IsLeftToBeSpawned: 0
-    RightModel: {fileID: 867040963}
-    IsRightToBeSpawned: 0
-    IsEnabled: 1
-    CanDuplicate: 1
+  ModelPool: []
 --- !u!1001 &1367067090
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3343,7 +3327,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09d15914922e34d4b9b492321268be86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wallTypeType: 2
+  wallTypeType: 0
 --- !u!1001 &1474290265
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3779,7 +3763,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09d15914922e34d4b9b492321268be86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wallTypeType: 1
+  wallTypeType: 0
 --- !u!1 &1710208381
 GameObject:
   m_ObjectHideFlags: 0

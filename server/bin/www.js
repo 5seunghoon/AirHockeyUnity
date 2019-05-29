@@ -17,7 +17,7 @@ let timeMst = "";
 let timeSst = "";
 
 const gameEndTimer = 120;
-const gameEndScore = 15;
+const gameEndScore = 2;
 
 let itemTable = [];
 let itemTableEndIndex = 0;
